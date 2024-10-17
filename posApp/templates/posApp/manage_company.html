@@ -1,0 +1,104 @@
+{% load base64_filters %}
+<div class="container-fluid">
+    <form action="" id="company-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="id" value="{% if company.pk %}{{ company.pk }}{% endif %}">
+        <div class="form-group mb-3">
+            <label for="logo" class="control-label">Company Logo</label>
+            <div class="d-flex align-items-center">
+                <input type="file" placeholder="Enter Company Logo in .png format only" name="logo" id="logo" class="form-control form-control-sm rounded-0" accept="image/png">
+                <div class="ms-3">
+                    {% if company and company.logo %}
+                        <img id="current-logo" src="data:image/png;base64,{{ company.logo|b64encode }}" alt="Current Logo" style="max-width:100px; max-height: 100px; border-radius: 15%;">
+                    {% endif %}
+                    <img id="preview-logo" src="#" alt="Selected Logo Preview"  style="max-width:100px; max-height: 100px; border-radius: 15%; display: none;">
+                </div>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label for="name" class="control-label">Company Name</label>
+            <input type="text" placeholder="Enter your Company/Business Name" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if company.name %}{{ company.name }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="phone" class="control-label">Company Phone Number</label>
+            <input type="number" placeholder="eg. 0768571150" name="phone" id="phone" class="form-control form-control-sm rounded-0" value="{% if company.phone %}{{ company.phone }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="email" class="control-label">Company Email</label>
+            <input type="email" placeholder="Enter Company Email Address" name="email" id="email" class="form-control form-control-sm rounded-0" value="{% if company.email %}{{ company.email }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="address" class="control-label">Company Address</label>
+            <input type="text" placeholder="Enter your Company/Business Location" name="address" id="address" class="form-control form-control-sm rounded-0" value="{% if company.address %}{{ company.address }}{% endif %}" required>
+        </div>
+        <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet mdc-layout-grid__cell--span-12-phone mb-3 d-flex align-items-center mt-4">
+            <label for="is_direct_pricing_method" class="mr-2">is Direct pricing method?</label>
+            <input type="checkbox" id="is_direct_pricing_method" name="is_direct_pricing_method" class="form-check-input mt-0" {% if company.is_direct_pricing_method %}checked{% endif %}>
+            {% if company %}
+{#                <label for="is_direct_pricing_method" class="ml-2" style="color: red">NOTE: This effect will affect the balances on your customer's histories</label>#}
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+    $(function() {
+        $('#logo').change(function() {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#preview-logo').attr('src', e.target.result);
+                $('#preview-logo').show();
+            }
+            if (this.files && this.files[0]) {
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        $('#company-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this);
+            $('.err-msg').remove();
+            var el = $('<div>');
+            el.addClass("alert alert-danger err-msg");
+            el.hide();
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                url: "{% url 'save-company-page' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err);
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg");
+                        location.reload();
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg);
+                    } else {
+                        el.text("An error occurred", 'error');
+                        end_loader();
+                        console.err(resp);
+                    }
+                    _this.prepend(el);
+                    el.show('slow');
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader();
+                }
+            });
+        });
+    });
+</script>

@@ -1,0 +1,352 @@
+{% extends "posApp/base.html" %}
+{% load static %}
+{% block pageContent %}
+<style>
+    .full-width-input {
+        width: 100% !important;
+        min-width: 50px; /* Ensures a reasonable width on very small screens */
+    }
+
+    @media (max-width: 576px) {
+        .full-width-input {
+            min-width: 100px; /* Increase minimum width for better usability on extra small screens */
+        }
+    }
+</style>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Create Customer's Order Proforma</h4>
+            <button class="btn btn-primary bg-gradient btn-sm rounded-20" id="view_proformas">
+                <i class="material-icons mdc-button__icon">reply_all</i><span> View Proforma</span>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <form action="" id="pos-form">
+            <fieldset>
+                <legend>Add Products</legend>
+                <div class="row align-items-center">
+                    <div class="col-lg-4 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
+                        <div class="form-group mb-3">
+                            <label for="customer" class="control-label">Customer</label>
+                            <select id="customer" name="customer" class="form-control form-control-sm rounded-0">
+                            <option  disabled selected>Select Customer</option>
+                                {% for customer in customers %}
+                                   <option value="{{ customer.id }}">
+                                   {% if customer.name %}
+                                   {{ customer.name }}
+                                   {% else %}
+                                   {{ customer.phone }}
+                                   {% endif %}
+                                   </option>
+                                {% endfor %}
+                            </select>
+                        </div><br>
+                    <button class="btn-light bg-gradient btn-sm rounded-0 m-1 mt-2" id="create_chap_chap_customer" title="Create Chap chap customer">
+                        <i class="mdi mdi-plus"></i>
+                    </button>
+                    </div>
+                    <div class="col-lg-4 col-md-5 col-sm-12">
+                        <div class="form-group mb-3">
+                            <label for="product-id">Select Product</label>
+                            <select id="product-id" class="form-select form-select-sm" multiple>
+                                <option value="" disabled selected></option>
+                                {% for product in products %}
+                                    <option value="{{ product.pk }}">{{ product }} ==> {{ product.quantity }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-1 col-md-5 col-sm-12">
+                        <div class="form-group mb-3" style="display: none">
+                            <label for="product-qty">Qty</label>
+                            <input type="number" class="form-control form-control-sm text-center" step="any" id="product-qty" value="1">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-2 col-sm-12">
+                        <div class="form-group mb-3 text-end">
+                            <button class="btn btn-primary btn-sm bg-gradient border rounded-20 ml-auto font-weight-bold" style="background-color: green;" type="button" id="check_out"><i class="mdi mdi-save"></i> Create Proforma</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <div class="d-flex w-100" id="POS-field">
+                    <div class="col-8 bg-gradient bg-light border h-100 overflow-auto">
+                        <table class="table table-bordered">
+                            <colgroup>
+                                <col width="5%">
+                                <col width="15%">
+                                <col width="20%">
+                                <col width="20%">
+                                <col width="20%">
+                                <col width="20%">
+                            </colgroup>
+                            <thead>
+                                <tr class="bg-dark bg-gradient bg-opacity-50 text-light">
+                                    <th class="py-1 px-2 text-center text-light"></th>
+                                    <th class="py-1 px-2 text-center text-light">QTY</th>
+                                    <th class="py-1 px-2 text-center text-light">Product</th>
+                                    <th class="py-1 px-2 text-center text-light">Price</th>
+                                    <th class="py-1 px-2 text-center text-light">Tendered</th>
+                                    <th class="py-1 px-2 text-center text-light">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="item-list">
+                                <!-- Items will be dynamically added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-4 bg-gradient bg-dark bg-opacity-50 border h-100 overflow-auto">
+                        <div class="col-12 py-4 px-2">
+                            <dl>
+                                <dt class="h4 fw-bold text-light">Sub Total</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="sub_total" value="0">
+                                    <span class="h3 fw-bold" id="sub_total">0.00</span>
+                                </dd>
+                                <dt class="h4 fw-bold text-light">Grand Total</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="grand_total" value="0">
+                                    <span class="h3 fw-bold" id="grand_total">0.00</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="row">
+                <div class="col-md-12 text-end">
+                    <br>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<noscript id="item-clone">
+    <tr>
+        <td class="px-2 py-1 text-center">
+            <button class="btn btn-sm btn-outline-danger rounded-0 rem-item" type="button"><i class="mdi mdi-close"></i></button>
+        </td>
+        <td class="px-2 py-1">
+            <input type="hidden" name="supplier_id[]">
+            <input type="hidden" name="product_id[]">
+            <input type="hidden" name="price[]">
+            <input type="number" name="qty[]" min="0" class="form-control form-control-sm rounded-0 text-center full-width-input">
+        </td>
+        <td class="px-2 py-1 product_name text-start"></td>
+        <td class="px-2 py-1 product_price text-end"></td>
+        <td class="px-2 py-1">
+            <input type="text" name="tendered_price[]" step="any" class="form-control form-control-sm rounded-0 text-end tendered_price_input full-width-input">
+        </td>
+        <td class="px-2 py-1 product_total text-end"></td>
+    </tr>
+</noscript>
+
+<div class="modal fade" id="purchaseOptionsModal" tabindex="-1" aria-labelledby="purchaseOptionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #343a40; color: #fff;">
+                <h5 class="modal-title" id="purchaseOptionsModalLabel">Choose an Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white"></button>
+            </div>
+            <div class="modal-body">
+                <p>What would you like to do next?</p>
+            </div>
+            <div class="modal-footer" style="margin-right: 10px;">
+                <button type="button" class="btn btn-primary" id="createPurchaseInvoice">Invoice</button>
+                <button type="button" class="btn btn-warning" id="createPurchaseProforma" style="background-color: #343A40; color: white">Proforma</button>
+                <button type="button" class="btn btn-success" id="createDeliveryNote">Delivery Note</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock pageContent%}
+
+{% block ScriptBlock %}
+
+<script>
+    var product_json = '{{ product_json }}'
+    if (product_json == "" || product_json == "{}") {
+        product_json = {}
+    } else {
+        product_json = product_json.replaceAll('&quot;', '"')
+        product_json = $.parseJSON(product_json)
+    }
+    var prod_arr = {}
+    if (Object.keys(product_json).length > 0) {
+        Object.keys(product_json).map(k => {
+            prod_arr[product_json[k].id] = product_json[k]
+        })
+    }
+
+    function calc() {
+        var sub_total = 0;
+        var grand_total = 0;
+        $('#POS-field table tbody tr').each(function() {
+            price = $(this).find('[name="price[]"]').val()
+            qty = $(this).find('[name="qty[]"]').val()
+            var tendered_price = $(this).find('[name="tendered_price[]"]').val();
+            qty = qty > 0 ? qty : 0
+            total = parseFloat(tendered_price) * parseFloat(qty)
+            $(this).find('.product_total').text(parseFloat(total).toLocaleString('en-US'))
+            sub_total += parseFloat(total)
+        })
+        $('#grand_total').text(parseFloat(sub_total).toLocaleString('en-US'))
+        $('[name="grand_total"]').val(parseFloat(sub_total))
+        $('#sub_total').text(parseFloat(sub_total).toLocaleString('en-US'))
+        $('[name="sub_total"]').val(parseFloat(sub_total))
+    }
+
+    $(function() {
+        $('#product-id').select2({
+            placeholder: "Please Select Product here",
+            width: '100%'
+        })
+        $('#customer').select2({
+            placeholder: "Please Select Customer here",
+            width: '100%'
+        });
+
+        // Function to add item to the list
+        function addItemToList(id, qty) {
+            if (!!prod_arr[id]) {
+                if ($('#POS-field table tbody input[name="product_id[]"][value="' + id + '"]').length > 0) {
+                    alert('Item Already in the List.');
+                    return false;
+                }
+                var data = prod_arr[id];
+                var tr = $($('noscript#item-clone').html()).clone();
+                {#tr.find('[name="qty[]"]').val(qty);#}
+                tr.find('[name="product_id[]"]').val(id);
+                tr.find('[name="price[]"]').val(data.price);
+                tr.find('[name="tendered_price[]"]').val(data.price);
+                tr.find('.product_name').text(data.name);
+                tr.find('.product_price').text(parseFloat(data.price).toLocaleString('en-US'));
+                tr.find('.product_total').text(parseFloat(data.price * qty).toLocaleString('en-US'));
+
+                // Add the row in descending order
+                var rows = $('#POS-field table tbody tr');
+                var inserted = false;
+                rows.each(function() {
+                    var rowQty = parseFloat($(this).find('[name="qty[]"]').val());
+                    if (rowQty < qty) {
+                        $(this).before(tr);
+                        inserted = true;
+                        return false;
+                    }
+                });
+                if (!inserted) {
+                    $('#POS-field table tbody').prepend(tr);
+                }
+
+                $('#POS-field table tbody').prepend(tr);
+                calc();
+
+                tr.find('[name="qty[]"], [name="tendered_price[]"]').on('input', calc);
+                tr.find('.rem-item').click(function() {
+                    tr.remove();
+                    calc();
+                });
+
+                $('#product-id option[value="' + id + '"]').remove();
+            }
+        }
+
+        $('#view_proformas').click(function() {
+            window.location.href = "{% url 'proformas-page' %}";
+        });
+
+        $('#add_item').click(function() {
+            var ids = $('#product-id').val();
+            var qty = $('#product-qty').val();
+            if (ids == null || ids.length === 0 || qty == '' || qty == null) {
+                alert("Product and Quantity Field is required!");
+                return false;
+            }
+            if (qty == '0' || qty == 0) {
+                alert("Quantity can't be zero!");
+                return false;
+            }
+            ids.forEach(function(id) {
+                addItemToList(id, qty);
+            });
+        })
+
+        // Add item when product selection changes
+        $('#product-id').change(function() {
+            var id = $(this).val();
+            var qty = $('#product-qty').val();
+            if (!!id && !!qty) {
+                addItemToList(id, qty);
+            }
+        });
+
+        $('#check_out').click(function() {
+            if ($('#POS-field table tbody tr').length <= 0) {
+                alert("Add at least 1 product first!")
+                return false;
+            }
+            $('#pos-form').submit(); // Trigger form submission
+        })
+
+        $('#pos-form').submit(function(e) {
+            e.preventDefault();
+            console.log("form opened")
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-custom-proforma' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg")
+                            window.location.href = "{% url 'create-custom-proforma' %}?id="+resp.proforma_id;
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                        console.log(resp.msg)
+                    } else {
+                        el.text("An error occurred", 'error');
+                        end_loader();
+                        console.log(resp.msg)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+    document.getElementById('create_chap_chap_customer').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent form submission
+    uni_modal("Add New Customer", "{% url 'manage-chapchap-customer-page' %}")
+});
+</script>
+{% endblock ScriptBlock %}

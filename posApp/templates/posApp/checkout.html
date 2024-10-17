@@ -1,0 +1,129 @@
+{% load humanize %}
+<div class="container-fluid">
+    <form action="" id="checkout-form">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="payable_amount" class="control-label">Payable Amount</label>
+                    <input type="text" id="payable_amount" class="form-control form-control-lg rounded-0 text-end" value="{{ grand_total|intcomma }}" required disabled>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="tendered_amount" class="control-label">Amount Tendered</label>
+                    <input type="text" step="any" id="tendered_amount" class="form-control form-control-lg rounded-0 text-end" value="0" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="payment_change" class="control-label">Change</label>
+                    <input type="text" id="payment_change" name="payment_change" class="form-control form-control-lg rounded-0 text-end" value="{{ 0|intcomma }}" required disabled>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+
+     function formatNumberWithCommas(value) {
+       return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+     }
+
+     function removeCommas(value) {
+      return value.replace(/,/g, '');
+     }
+
+     document.getElementById('tendered_amount').addEventListener('input', function(event) {
+      let value = event.target.value;
+      value = removeCommas(value);  // Remove any existing commas
+        if (!isNaN(value) && value !== '') {  // Ensure the value is a number
+          event.target.value = formatNumberWithCommas(value);
+       }
+       });
+
+
+    $(function() {
+        $('#tendered_amount').on('input keypress keyup keydown', function() {
+            var tendered_amount = $('#tendered_amount').val()
+            var payable = $('#payable_amount').val()
+            tendered_amount = tendered_amount.replace(/,/gi, '')
+            payable = payable.replace(/,/gi, '')
+            var change = 0
+            tendered_amount = tendered_amount > 0 ? tendered_amount : 0;
+            $('[name="tendered_amount"]').val(tendered_amount)
+            change = parseFloat(tendered_amount) - parseFloat(payable)
+            console.log(tendered_amount, payable)
+            $('#payment_change').val(parseFloat(change).toLocaleString('en-US'))
+            $('[name="amount_change"]').val(change)
+        })
+
+        $('#checkout-form').submit(function(e) {
+                e.preventDefault();
+                // Muhimu kwa wasio kopesha
+                /*if ($('[name="amount_change"]').val() < 0) {
+                alert("Tendered Amount is lower than Payable Amount")
+                return false;
+                }*/
+                {#$('#pos-form').submit()#}
+
+                var selectedPaymentMethod = $('[name="payment_method"]').val();
+                if (selectedPaymentMethod === '0' || selectedPaymentMethod === '1') {
+                    if ($('[name="amount_change"]').val() < 0){
+                        alert("Tendered Amount is lower than Payable Amount")
+                        $('#tendered_amount').prop('disabled', false);
+                        return false;
+                    }
+                }
+
+                var _this = $(this)
+                $('.err-msg').remove();
+                var el = $('<div>')
+                el.addClass("alert alert-danger err-msg")
+                el.hide()
+                if (_this[0].checkValidity() == false) {
+                    _this[0].reportValidity();
+                    return false;
+                }
+                start_loader();
+
+            var checkoutFormData = $('#checkout-form').serialize();
+            var posFormData = $('#pos-form').serialize();
+
+            // Combine form data if needed
+            var combinedFormData = checkoutFormData + '&' + posFormData;
+
+            console.log(combinedFormData)
+
+            $.ajax({
+    headers: {
+        "X-CSRFToken": '{{csrf_token}}'
+    },
+    url: "{% url 'save-pos' %}",
+    data: combinedFormData,  // Change here
+    method: 'POST',
+    dataType: 'json',
+    error: err => {
+        console.log(err);
+        end_loader();
+    },
+    success: function(resp) {
+        if (typeof resp == 'object' && resp.status == 'success') {
+            el.removeClass("alert alert-danger err-msg");
+            location.reload();
+        } else if (resp.status == 'failed' && !!resp.msg) {
+            el.text(resp.msg);
+        } else {
+            el.text("An error occurred", 'error');
+            end_loader();
+            console.error(resp);
+        }
+        _this.prepend(el);
+        el.show('slow');
+        $("html, body, .modal").scrollTop(0);
+        end_loader();
+    }
+});
+
+            })
+    })
+</script>

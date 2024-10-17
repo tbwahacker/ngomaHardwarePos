@@ -1,0 +1,409 @@
+{% extends "posApp/base.html" %}
+{% load humanize %}
+{% load humanize %}
+{% block pageContent %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            {% if user.is_staff %}
+            <h4 class="card-title mb-0">Product List (Stock)  : <label style="color: #00bb00">Spent  {{ total_price|floatformat:2|intcomma }} TZS </label></h4>
+            {% else %}
+                <h4 class="card-title mb-0">Product List (Stock)</h4>
+            {% endif %}
+            <div>
+                <button class="fab-button bg-gradient btn-sm rounded-0" id="export-button" title="Export CSV file">
+                        <i class="mdi mdi-export"></i>
+                    </button>
+                <button class="fab-button bg-gradient btn-sm rounded-0" id="import-button" title="Import CSV file">
+                        <i class="mdi mdi-import"></i>
+                    </button>
+                <button class="btn btn-primary bg-gradient btn-sm rounded-0" id="create_new"><i class="mdi mdi-plus"></i><span> Add New</span></button>
+                {% if user.is_staff %}
+                    <button class="btn btn-warning bg-gradient btn-sm rounded-0" id="clear-quantities">
+                         <i class="mdi mdi-refresh"></i><span> Clear All Quantities</span>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        <br>
+        <!-- Hidden input element for file upload -->
+        <input type="file" id="file-input" accept=".xlsx, .xls, .csv" style="display: none;">
+        <div class="d-flex justify-content-center mb-2">
+            <form method="GET" action="{% url 'product-page' %}" id="search-form" class="w-50">
+                <input type="text" name="q" id="search-input" class="form-control rounded-pill" placeholder="Search products..." value="{{ request.GET.q|default_if_none:'' }}">
+                <input type="hidden" name="per_page" id="per_page" value="{{ per_page }}">
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="items-list-container" class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <div class="d-flex justify-content-between">
+            <form method="GET" action="{% url 'product-page' %}" id="entries-form">
+                <label for="per_page">Show</label>
+                <select name="per_page" id="per_page-select">
+                    <option value="150" {% if per_page == 150 %}selected{% endif %}>150</option>
+                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
+                    <option value="250" {% if per_page == 250 %}selected{% endif %}>250</option>
+                    <option value="300" {% if per_page == 300 %}selected{% endif %}>300</option>
+                    <option value="350" {% if per_page == 350 %}selected{% endif %}>350</option>
+                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+                    <option value="1000" {% if per_page == 1000 %}selected{% endif %}>1000</option>
+                    <option value="1500" {% if per_page == 1500 %}selected{% endif %}>1500</option>
+                    <option value="2000" {% if per_page == 2000 %}selected{% endif %}>2000</option>
+                </select>
+                entries
+                <input type="hidden" name="q" value="{{ request.GET.q|default_if_none:'' }}">
+            </form>
+            <div>
+                <p>Showing {{ start_index }} to {{ end_index }} of {{ total_entries }} entries</p>
+            </div>
+        </div>
+        <br>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <colgroup>
+                    <col width="5%">
+                    <col width="20%">
+                    <col width="5%">
+                    {% if user.is_staff %}
+                    <col width="20%">
+                    {% endif %}
+                    <col width="15%">
+                    <col width="10%">
+                    <col width="10%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="text-center py-1">#</th>
+                        <th class="text-center py-1 fw-bold">Product</th>
+                        <th class="text-center py-1">Qty</th>
+                        {% if user.is_staff %}
+                            <th class="text-center py-1">Selling Price</th>
+                        {% endif %}
+                        <th class="text-center py-1">Description</th>
+                        <th class="text-center py-1">Status</th>
+                        <th class="text-center py-1">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+{#                        <tr style="{% if product.quantity <= product.minimum_quantity %} font-weight: bold; background-color: red; color: white; {% endif %}">#}
+{#                        <td class="px-2 py-1 text-center">{{ forloop.revcounter }}</td>#}
+{#                        <td class="px-2 py-1 text-center fw-bold">{{ product.code }} - {{ product.name }}</td>#}
+{#                        <td class="px-2 py-1 text-start">{{ product.category_id.name }}</td>#}
+{#                        {% if perms.posApp.view_fully_in_product or user.is_stafff%}#}
+{#                            <td class="px-2 py-1 text-center">{{ product.quantity }}</td>#}
+{#                             {% else %}#}
+{#                            {% if product.quantity < 50 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 50</td>#}
+{#                                {% elif product.quantity < 100 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 75</td>#}
+{#                                {% elif product.quantity < 250 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 250</td>#}
+{#                                {% elif product.quantity < 500 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 500</td>#}
+{#                                {% elif product.quantity < 1000 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 1000</td>#}
+{#                                {% elif product.quantity < 2500 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 2500</td>#}
+{#                                {% elif product.quantity < 5000 %}#}
+{#                                <td class="px-2 py-1 text-center">Less than 5000</td>#}
+{#                                {% else %}#}
+{#                                <td class="px-2 py-1 text-center">Above 5000</td>#}
+{#                                {% endif %}#}
+{#                        {% endif %}#}
+{#                        {% if user.is_staff %}#}
+{#                            <td class="px-2 py-1 text-center">{{ product.price|intcomma }}</td>#}
+{#                        {% endif %}#}
+{#                        <td class="px-2 py-1 text-center">{{ product.description }}</td>#}
+{#                        <td class="px-2 py-1 text-center">#}
+{#                            {% if product.status == 1 %}#}
+{#                            <span class="badge bg-primary rounded-pill px-3">Active</span> {% else %}#}
+{#                            <span class="badge bg-secondary rounded-pill px-3">Inactive</span> {% endif %}#}
+{#                        </td>#}
+{#                        <td class="px-2 py-1 text-center">#}
+{#                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded edit-data" type="button" data-id="{{ product.pk }}" title="Edit">#}
+{#                                <i class="material-icons mdc-button__icon">edit</i>#}
+{#                            </button>#}
+{#                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ product.pk }}" title="Delete">#}
+{#                                <i class="material-icons mdc-button__icon">delete_outline</i>#}
+{#                            </button>#}
+{#                        </td>#}
+{#                    </tr>#}
+                        <tr {% if product.quantity <= product.minimum_quantity %} style="background-color: red;" {% endif %}>
+    <td class="px-2 py-1 text-center" {% if product.quantity <= product.minimum_quantity %} style="font-weight: bold; color: white;" {% endif %}>{{ forloop.revcounter }}</td>
+    <td class="px-2 py-1 text-center fw-bold" {% if product.quantity <= product.minimum_quantity %} style="color: white;" {% endif %}>{{ product.name }}</td>
+    <td class="px-2 py-1 text-center" {% if product.quantity <= product.minimum_quantity %} style="color: white;" {% endif %}>{% if product.left_pieces > 0 %}{{ product.quantity|floatformat:0 }} and {{ product.left_pieces }} Pcs{% else %}{{ product.quantity }}{% endif %}</td>
+    {% if user.is_staff %}
+        <td class="px-2 py-1 text-center" {% if product.quantity <= product.minimum_quantity %} style="color: white;" {% endif %}>{{ product.price|intcomma }}</td>
+    {% endif %}
+    <td class="px-2 py-1 text-center" {% if product.quantity <= product.minimum_quantity %} style="color: white;" {% endif %}>{{ product.description }}</td>
+    <td class="px-2 py-1 text-center" {% if product.quantity <= product.minimum_quantity %} style="color: white;" {% endif %}>
+        {% if product.status == 1 %}
+        <span class="badge bg-primary rounded-pill px-3">Active</span>
+        {% else %}
+        <span class="badge bg-secondary rounded-pill px-3">Inactive</span>
+        {% endif %}
+    </td>
+    <td class="px-2 py-1 text-center">
+        <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded edit-data" type="button" data-id="{{ product.pk }}" title="Edit">
+            <i class="material-icons mdc-button__icon">edit</i>
+        </button>
+        <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ product.pk }}" title="Delete">
+            <i class="material-icons mdc-button__icon">delete_outline</i>
+        </button>
+    </td>
+</tr>
+
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12 justify-content-center">
+    <div class="pagination-container">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if products.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&per_page={{ per_page }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.previous_page_number }}&per_page={{ per_page }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in products.paginator.page_range %}
+                {% if products.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > products.number|add:-3 and num < products.number|add:3 %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}&per_page={{ per_page }}&q={{ request.GET.q|default_if_none:'' }}">{{ num }}</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if products.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.next_page_number }}&per_page={{ per_page }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ products.paginator.num_pages }}&per_page={{ per_page }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block ScriptBlock %}
+<script>
+    $(function() {
+        // Function to handle edit button click
+        $(document).on('click', '.edit-data', function() {
+            uni_modal("Edit Product", "{% url 'manage_products-page' %}?id=" + $(this).data('id'), "modal-lg")
+        });
+
+        // Function to handle delete button click
+        $(document).on('click', '.delete-data', function() {
+            _conf("Are you sure to delete this Product?", "delete_product", [$(this).data('id')])
+        });
+
+        $('#uni_modal').on('shown.bs.modal', function() {
+            $('#category_id').select2({
+                placeholder: "Please Select Category Here",
+                width: '100%',
+                dropdownParent: $('#uni_modal')
+            })
+        })
+
+        // Debounce function to limit the rate of execution of a function
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+
+        // Autocomplete search with debounce
+        $('#search-input').on('input', debounce(function() {
+            var query = $(this).val();
+            var perPage = $('#per_page').val();
+            $.ajax({
+                url: '{% url "product-page" %}',
+                type: 'GET',
+                data: {
+                    q: query,
+                    per_page: perPage
+                },
+                success: function(data) {
+                    $('#items-list-container').html($(data).find('#items-list-container').html());
+                    // Re-attach event handlers for action buttons after updating content
+                    attachActionHandlers();
+                },
+                error: function() {
+                    alert('An error occurred while searching.');
+                }
+            });
+        }, 300)); // 300 milliseconds debounce delay
+
+        // Handle per_page change
+        $('#per_page-select').change(function() {
+            $('#per_page').val($(this).val());
+            $('#search-form').submit();
+        });
+
+        // Function to clear all quantities
+        $('#clear-quantities').click(function() {
+        if (confirm("Are you sure you want to clear all quantities?")) {
+            $.ajax({
+                url: '{% url "clear-quantities-url" %}', // You'll need to create a URL for this action
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alert('All quantities have been cleared.');
+                        location.reload();
+                    } else {
+                        alert('Failed to clear quantities: ' + response.msg);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('An error occurred while clearing quantities: ' + error);
+                }
+            });
+        }
+    });
+
+
+        // Function to attach action button event handlers
+        function attachActionHandlers() {
+             $('#export-button').click(function() {
+             start_loader();
+
+             $.ajax({
+               url: '{% url "export-products-csv-file" %}',
+                 type: 'GET',
+                 success: function(data) {
+            // Create a hidden download link
+            let a = document.createElement('a');
+            a.href = window.URL.createObjectURL(new Blob([data], {type: 'text/csv'}));
+            a.download = 'products_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            end_loader();
+            alert('CSV file has been downloaded successfully.');
+            },
+            error: function(xhr) {
+            end_loader();
+            let response = JSON.parse(xhr.responseText);
+            alert('Error: ' + response.msg);
+            }
+            });
+            });
+
+            $('#import-button').click(function() {
+            $('#file-input').trigger('click');
+            })
+
+            $('#create_new').click(function() {
+            uni_modal("Add New Product", "{% url 'manage_products-page' %}", "modal-lg")
+            })
+
+            $('.edit-data').on('click', function() {
+                uni_modal("Edit Product", "{% url 'manage_products-page' %}?id=" + $(this).data('id'), "modal-lg")
+            });
+
+            $('.delete-data').on('click', function() {
+                _conf("Are you sure to delete this Product?", "delete_product", [$(this).data('id')])
+            });
+
+             // Function to handle file selection
+    $('#file-input').change(function(e) {
+        var file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', file);
+        // Add CSRF token to form data
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        // Send AJAX request to import data
+        $.ajax({
+            url: '{% url "save-product-page" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token in headers
+            },
+            success: function(response) {
+                if (response.status === 'failed'){
+                    alert('Failed to import data : '+response.msg);
+                    window.location.reload();
+                }else {
+                    alert(response.msg);
+                // Optionally, reload the page to refresh the product list
+                window.location.reload();
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Failed to import data : '+error);
+                console.error(error);
+            }
+        });
+    });
+
+        }
+
+        // Initial attachment of action button event handlers
+        attachActionHandlers();
+    })
+
+    function delete_product($id) {
+        start_loader();
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: "{% url 'delete-product' %}",
+            method: "POST",
+            data: {
+                id: $id
+            },
+            dataType: "json",
+            error: err => {
+                console.log(err)
+                alert_toast("An error occurred.", 'error');
+                end_loader();
+            },
+            success: function(resp) {
+                if (typeof resp == 'object' && resp.status == 'success') {
+                    location.reload();
+                } else {
+                    alert_toast("An error occurred.", 'error');
+                    end_loader();
+                }
+            }
+        })
+    }
+</script>
+{% endblock ScriptBlock %}
+

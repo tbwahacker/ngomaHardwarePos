@@ -1,0 +1,479 @@
+{% extends "posApp/base.html" %}
+{% load humanize %}
+{% block pageContent %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Sales List</h4>
+            <button class="btn btn-primary bg-gradient btn-sm rounded-0" id="create_new"><i class="mdi mdi-plus"></i><span> Add New</span></button>
+        </div>
+        <br>
+        <div class="d-flex justify-content-center">
+            <form method="GET" action="{% url 'sales-page' %}" id="search-form" class="w-50">
+                <input type="text" name="q" id="search-input" class="form-control rounded-pill" placeholder="Search sales..." value="{{ request.GET.q|default_if_none:'' }}">
+                <input type="hidden" name="per_page" value="{{ per_page }}">
+            </form>
+        </div>
+    </div>
+</div>
+<div id="items-list-container" class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <div class="d-flex justify-content-between">
+    <form method="GET" action="{% url 'sales-page' %}" id="entries-form">
+        <label for="per_page">Show</label>
+        <select name="per_page" id="per_page" onchange="document.getElementById('entries-form').submit()">
+            <option value="300" {% if per_page == 300 %}selected{% endif %}>300</option>
+            <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+            <option value="1000" {% if per_page == 1000 %}selected{% endif %}>1000</option>
+            <option value="2000" {% if per_page == 2000 %}selected{% endif %}>2000</option>
+            <option value="3000" {% if per_page == 3000 %}selected{% endif %}>3000</option>
+            <option value="4000" {% if per_page == 4000 %}selected{% endif %}>4000</option>
+            <option value="5000" {% if per_page == 5000 %}selected{% endif %}>5000</option>
+            <option value="10000" {% if per_page == 10000 %}selected{% endif %}>10000</option>
+        </select>
+        entries
+        <input type="hidden" name="q" value="{{ request.GET.q|default_if_none:'' }}">
+    </form>
+    <div><p>Showing {{ start_index }} to {{ end_index }} of {{ total_entries }} entries</p></div>
+</div>
+<br>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <colgroup>
+                    <col width="5%">
+                    <col width="20%">
+                    <col width="20%">
+                    <col width="25%">
+                    <col width="15%">
+                    <col width="15%">
+                    <col width="15%">
+                    <col width="15%">
+                </colgroup>
+                <thead>
+    <tr>
+        <th class="text-center py-1">Order</th>
+        <th class="text-center py-1">Date</th>
+        <th class="text-start py-1 fw-bold">Customer</th>
+        <th class="text-end py-1">Total</th>
+        <th class="text-center py-1">Method</th>
+        <th class="text-center py-1">qty</th>
+{#        <<th class="text-center py-1">Status#}
+        <<th class="text-center py-1">
+          <!-- Status Filter Menu -->
+         <form method="GET" action="{% url 'sales-page' %}" id="status-filter-form">
+            <select name="status" class="form-select form-select-sm border-0 bg-transparent text-center" style="appearance: none; width: auto;" onchange="document.getElementById('status-filter-form').submit()">
+            <option value="">All Status</option>
+            <option value="0" {% if request.GET.status == '0' %}selected{% endif %}>Pending</option>
+            <option value="1" {% if request.GET.status == '1' %}selected{% endif %}>Approved</option>
+            <option value="2" {% if request.GET.status == '2' %}selected{% endif %}>Rejected</option>
+            </select>
+            <input type="hidden" name="q" value="{{ request.GET.q|default_if_none:'' }}">
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+         </form>
+        </th>
+        <th class="text-center py-1">Employee</th>
+        <th class="text-center py-1">Action</th>
+    </tr>
+</thead>
+
+{#                <thead>#}
+{#                    <tr>#}
+{#                        <th class="text-center py-1">Order</th>#}
+{#                        <th class="text-center py-1">Date</th>#}
+{#                         <th class="text-start py-1 fw-bold">Customer</th>#}
+{#                        <th class="text-end py-1">Total</th>#}
+{#                        <th class="text-center py-1">Method</th>#}
+{#                        <th class="text-center py-1">Loan</th>#}
+{#                        <th class="text-center py-1">qty</th>#}
+{#                        <th class="text-center py-1">Status</th>#}
+{#                        <th class="text-center py-1">Employee</th>#}
+{#                        <th class="text-center py-1">Action</th>#}
+{#                    </tr>#}
+{#                </thead>#}
+                <tbody>
+                    {% for sale in sale_data %}
+                    <tr>
+                        <td class="px-2 py-1 text-center">{{ sale.id }}</td>
+                        <td class="px-2 py-1 text-center">{{ sale.date_added|date:'Y-m-d' }}</td>
+                        {% if sale.customer.name %}
+                            <td class="px-2 py-1 text-start fw-bold">{{ sale.customer.name }} {% if sale.phone_no %} - {{ sale.phone_no }} {% endif %} </td>
+                        {% else %}
+                            {% if sale.customer.phone %}
+                               <td class="px-2 py-1 text-start">{{ sale.customer.phone }}</td>
+                             {% else %}
+                                <td class="px-2 py-1 text-start">{% if sale.phone_no %}{{ sale.phone_no }}{% else %}Unselected{% endif %}</td>
+                             {% endif %}
+                        {% endif %}
+                        {% if company.is_direct_pricing_method %}
+                            <td class="px-2 py-1 text-end">{{ sale.grand_total|intcomma }}</td>
+                        {% else %}
+                            <td class="px-2 py-1 text-end">{{ sale.total_tendered_amount|intcomma }}</td>
+                        {% endif %}
+                        <td class="px-2 py-1 text-center">
+                            {% if sale.payment_method.code == '0001' %}
+                                <label for="name" class="control-label" style="color: #0D6EFD;;">{{ sale.payment_method.name }}</label>
+                            {% elif sale.payment_method.code == '0002' %}
+                                {% if sale.loan_status == 1 %}
+                                   <label for="name" class="control-label" style="color: #FF5122;">{{ sale.payment_method.name}}</label>
+                                    {% else %}
+                                    <label for="name" class="control-label" style="color: #499C54;">Due</label>
+                                {% endif %}
+                            {% else %}
+                                <label for="name" class="control-label" style="color: #00B4D5;">{{ sale.payment_method.name}}</label>
+                            {% endif %}
+                        </td>
+
+{#                        <td class="px-2 py-1 text-center">#}
+{#                           {% if sale.loan_status == 0 %}#}
+{#                               <label for="name" class="control-label" style="color: #499C54;">No Loan</label>#}
+{#                            {% endif %}#}
+{#                            {% if sale.loan_status == 1 %}#}
+{#                               <label for="name" class="control-label" style="color: #FF5122;">Has Loan</label>#}
+{#                            {% endif %}#}
+{#                            {% if sale.loan_status == 2 %}#}
+{#                               <label for="name" class="control-label" style="color: #499C54;">Completed Loan</label>#}
+{#                            {% endif %}#}
+{#                        </td>#}
+                        <td class="px-2 py-1 text-center">{{ sale.item_count|intcomma }}</td>
+                        <td class="px-2 py-1 text-center">
+                           {% if sale.status == 0 %}
+                                  <span class="badge rounded-pill px-3" style="background-color: #DFDFDF; color: #000000;">Pending</span>
+                               {% elif sale.status == 1 %}
+                                   <span class="badge rounded-pill px-3" style="background-color: #499C54; color: #ffffff;">Approved</span>
+                                 {% elif sale.status == 2 %}
+                                   <span class="badge rounded-pill px-3" style="background-color: #FF5122; color: #ffffff;">Rejected</span>
+                               {% else %}
+                                       <span class="badge rounded-pill px-3" style="background-color: #DFDFDF; color: #FF5122;">Undefined</span>
+                               {% endif %}
+                         </td>
+                        <td class="px-2 py-1 text-center">{{ sale.user.username }}</td>
+                        <td class="px-2 py-1 text-center">
+                           {% if not sale.status == 2 %}
+                             <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--info mdc-ripple-upgraded view-products" type="button" data-id="{{ sale.id }}" title="View Sold Products">
+                                <i class="material-icons mdc-button__icon">visibility</i>
+                            </button>
+                            {% else %}
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--info mdc-ripple-upgraded view-products" type="button" data-id="{{ sale.id }}" title="View Sold Products" disabled>
+                            <i class="material-icons mdc-button__icon">visibility</i>
+                            </button>
+                           {% endif %}
+
+                            {% if perms.posApp.view_order_confirmation %}
+                             {% if sale.status != 2 %}
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded view-data" type="button" data-id="{{ sale.id }}" title="View Receipt">
+                                <i class="material-icons mdc-button__icon">receipt</i>
+                            </button>
+                             {% else %}
+                              <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded " type="button" title="View Receipt">
+                                <i class="material-icons mdc-button__icon">receipt</i>
+                            </button>
+                             {% endif %}
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded createSalesInvoice" type="button" data-id="{{ sale.id }}" title="Create Invoice">
+                                <i class="material-icons mdc-button__icon">book</i>
+                            </button>
+                            {% endif %}
+                            {% if perms.posApp.view_delete_order_button %}
+                            <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ sale.id }}" data-code="{{ sale.code }}" title="Delete">
+                                <i class="material-icons mdc-button__icon">delete_outline</i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12 justify-content-center">
+    <div class="pagination-container">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if sales.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&q={{ request.GET.q|default_if_none:'' }}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sales.previous_page_number }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in sales.paginator.page_range %}
+                {% if sales.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > sales.number|add:-3 and num < sales.number|add:3 %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}&q={{ request.GET.q|default_if_none:'' }}">{{ num }}</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if sales.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sales.next_page_number }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sales.paginator.num_pages }}&q={{ request.GET.q|default_if_none:'' }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirm_modal2" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Message will be populated by JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="reject" class="btn btn-secondary" style="background-color: #FF5122; color: #ffffff;">Reject Payment</button>
+                <button type="button" id="confirm" class="btn btn-primary">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock pageContent %}
+
+{% block ScriptBlock %}
+<script>
+
+     function delete_sale($id) {
+        start_loader();
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: "{% url 'delete-sale' %}",
+            method: "POST",
+            data: {
+                id: $id
+            },
+            dataType: "json",
+            error: err => {
+                console.log(err)
+                alert_toast("An error occured.", 'error');
+                end_loader();
+            },
+            success: function(resp) {
+                if (typeof resp == 'object' && resp.status == 'success') {
+                    location.reload();
+                } else {
+                    alert_toast("An error occured.", 'error');
+                    end_loader();
+                }
+            }
+        })
+    }
+
+    $(document).ready(function() {
+
+        // Debounce function to limit the rate of execution of a function
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+
+        // Autocomplete search with debounce
+        $('#search-input').on('input', debounce(function() {
+            var query = $(this).val();
+            var perPage = $('#per_page').val();
+            $.ajax({
+                url: '{% url "sales-page" %}',
+                type: 'GET',
+                data: {
+                    q: query,
+                    {#per_page: perPage#}
+                },
+                success: function(data) {
+                    $('#items-list-container').html($(data).find('#items-list-container').html());
+                    // Re-attach event handlers for action buttons after updating content
+                    attachActionHandlers();
+                },
+                error: function() {
+                    alert('An error occurred while searching.');
+                }
+            });
+        }, 300)); // 300 milliseconds debounce delay
+
+        // Handle per_page change
+        $('#per_page-select').change(function() {
+            $('#per_page').val($(this).val());
+            $('#search-form').submit();
+        });
+
+        // Function to attach action button event handlers
+        function attachActionHandlers() {
+        $('#create_new').click(function() {
+            window.location.href = "{% url 'pos-page' %}";
+            });
+        $('.view-products').click(function() {
+            window.location.href = "{% url 'view-sold-products' %}?id=" + $(this).attr('data-id');
+        });
+        $('.createSalesInvoice').on('click', function() {
+            var saleId = $(this).data('id');
+            $.ajax({
+                url: "{% url 'get-sale-status' %}",
+                method: "GET",
+                data: { id: saleId },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 0) {
+                        showConfirmationModal(saleId, response.loan_status);
+                    } else if (response.status === 1) {
+                        window.location.href = "{% url 'create-sale-invoice' %}?id="+ saleId;
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    alert("An error occurred.");
+                }
+            });
+        });
+
+        $('.view-data').on('click', function() {
+            var saleId = $(this).data('id');
+            $.ajax({
+                url: "{% url 'get-sale-status' %}",
+                method: "GET",
+                data: { id: saleId },
+                dataType: "json",
+                success: function(response) {
+                printReceiptModal(saleId);
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    alert("An error occurred.");
+                }
+            });
+        });
+
+        $('.delete-data').click(function() {
+            _conf("Are you sure to delete this Sale? \n ( Note. If item status is Approved then after this deletion it will be reverse the stock from the number of items to this sale)", "delete_sale", [$(this).attr('data-id')])
+        })
+        }
+
+        // Initial attachment of action button event handlers
+        attachActionHandlers();
+
+        function showConfirmationModal(saleId, loanStatus) {
+            var message = loanStatus === 1 ? "Go Pay Loan" : "Please confirm this payment";
+            $('#confirm_modal2 .modal-body').html('<p>' + message + '</p>');
+            $('#confirm_modal2').modal('show');
+            $('#reject').off('click').on('click', function() {
+                    rejectPayment(saleId);
+                });
+            if (loanStatus === 1) {
+                $('#confirm').off('click').on('click', function() {
+                    payLoan(saleId);
+                });
+            } else if (loanStatus === 2){
+                printReceiptModal(saleId);
+            }
+            else {
+                $('#confirm').off('click').on('click', function() {
+                    processPayment(saleId);
+                });
+            }
+        }
+
+        function processPayment(saleId) {
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'process-payment' %}",
+                method: "POST",
+                data: { id: saleId },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#confirm_modal2').modal('hide');
+                        // Update the sales list
+                          updateSalesList();
+                           {#alert(response.message);#}
+                          {#printReceiptModal(saleId);#}
+                    } else {
+                        alert("An error occurred.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    alert("An error occurred.");
+                }
+            });
+        }
+
+        function rejectPayment(saleId) {
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'reject-payment' %}",
+                method: "POST",
+                data: { id: saleId },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $('#confirm_modal2').modal('hide');
+                        // Update the sales list
+                          updateSalesList();
+                           {#alert(response.message);#}
+                          {#printReceiptModal(saleId);#}
+                    } else {
+                        alert("An error occurred.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                    alert("An error occurred.");
+                }
+            });
+        }
+
+        function printReceiptModal(saleId) {
+            $('#confirm_modal').modal('hide');
+            uni_modal("Order's Receipt", "{% url 'receipt-modal' %}?id=" + saleId);
+        }
+
+        function payLoan(saleId) {
+            // Implement loan payment logic here
+            window.location.href = "{% url 'view-sold-products' %}?id=" + saleId;
+        }
+
+   function updateSalesList() {
+    $.ajax({
+        url: "{% url 'sales-page' %}",
+        method: "GET",
+        dataType: "html",
+        success: function(data) {
+            // Replace the existing sales list with the updated HTML
+             location.reload();
+            {#$('.sales-list').html(data);#}
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+            alert("An error occurred while updating the sales list.");
+        }
+    });
+}
+    });
+</script>
+{% endblock ScriptBlock %}

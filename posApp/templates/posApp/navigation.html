@@ -1,0 +1,223 @@
+{% load static %}
+
+<style>
+/* Style the sidenav links and the dropdown button */
+.mdc-drawer a, .dropdown-btn {
+  padding: 6px 8px 6px 16px;
+  text-decoration: none;
+  font-size: 16px;
+  color: white;
+  display: block;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+/* On mouse-over */
+.mdc-drawer a:hover, .dropdown-btn:hover, .dropdown-container a:hover {
+  color: #f1f1f1;
+  background-color: #444;
+}
+
+.mdc-button__icon {
+    margin-right: 5px;
+}
+
+/* Main content */
+.main {
+  margin-left: 200px; /* Same as the width of the sidenav */
+  font-size: 20px; /* Increased text to enable scrolling */
+  padding: 0px 10px;
+}
+
+/* Add an active class to the active dropdown button */
+.active {
+  background-color: #262626;
+  color: white;
+}
+
+/* Dropdown container (hidden by default). Optional: add a lighter background color and some left padding to change the design of the dropdown content */
+.dropdown-container {
+  display: none;
+  background-color: #333;
+  padding-left: 8px;
+}
+
+/* Optional: Style the caret down icon */
+.fa-caret-down, .fa-caret-right {
+  float: right;
+  padding-right: 8px;
+}
+
+/* Ensure nested dropdown items have a left margin */
+.dropdown-container .mdc-drawer-item {
+  margin-left: 16px;
+}
+
+</style>
+
+<!-- partial:partials/_sidebar.html -->
+<aside class="mdc-drawer mdc-drawer--dismissible mdc-drawer--open bg-dark bg-gradient">
+    <div class="mdc-drawer__header border-bottom border-light">
+        <a href="{% url 'home-page' %}" class="brand-logo">
+            <h3 class="text-center text-light">NGOMA HARDWARE POS</h3>
+        </a>
+    </div>
+    <div class="mdc-drawer__content">
+        <div class="mdc-list-group">
+            <nav class="mdc-list mdc-drawer-menu">
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'home-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">home</i>
+                        {{ translations.home }}
+                    </a>
+                </div>
+                {% if user.is_authenticated and perms.posApp.view_category %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'category-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">list</i>
+                        {{ translations.category_list }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_products %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'product-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">local_grocery_store</i>
+                        {{ translations.product_list }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_purchases %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'purchases-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">list</i>
+                        {{ translations.purchases }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_products and perms.posApp.view_sales %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'pos-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">payment</i>
+                        {{ translations.pos }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_sales %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'sales-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">receipt</i>
+                        {{ translations.sales }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and user.is_staff %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link dropdown-btn">
+                        <i class="material-icons mdc-button__icon">reply_all</i>
+                        {{ translations.payments }}
+                        <i class="material-icons mdc-list-item__start-detail dropdown-icon" aria-hidden="true">expand_more</i>
+                    </a>
+                    <div class="dropdown-container">
+                      <div class="mdc-list-item mdc-drawer-item">
+                          <a class="mdc-drawer-link open-modal-link" href="javascript:void(0)" data-url="{% url 'manage_sales_loan' %}">
+                             <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">reply_all</i>
+                             {{ translations.payments_sales }}
+                          </a>
+                      </div>
+                      <div class="mdc-list-item mdc-drawer-item">
+                          <a class="mdc-drawer-link open-modal-link" href="javascript:void(0)" data-url="{% url 'manage_purchases_loan' %}">
+                              <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">reply_all</i>
+                              {{ translations.payments_purchases }}
+                          </a>
+                      </div>
+                    </div>
+                </div>
+                {% endif %}
+                 {% if user.is_authenticated and perms.posApp.view_customproforma %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'proformas-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">payment</i>
+                        Proforma
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_customer %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'customers-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">account_circle</i>
+                        {{ translations.customers }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_supplier %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'suppliers-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">assignment_ind</i>
+                        {{ translations.suppliers }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and perms.posApp.view_user %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'employees-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">account_box</i>
+                        {{ translations.employees }}
+                    </a>
+                </div>
+                {% endif %}
+                {% if user.is_authenticated and user.is_staff %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'group-list' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">security</i>
+                        {{ translations.roles_management }}
+                    </a>
+                </div>
+                {% endif %}
+                 {% if user.is_authenticated and user.is_staff %}
+                <div class="mdc-list-item mdc-drawer-item">
+                    <a class="mdc-drawer-link" href="{% url 'settings-page' %}">
+                        <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true">settings</i>
+                        {{ translations.settings }}
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+<script>
+/* Loop through all dropdown buttons to toggle between hiding and showing its dropdown content - This allows the user to have multiple dropdowns without any conflict */
+var dropdown = document.getElementsByClassName("dropdown-btn");
+var i;
+
+for (i = 0; i < dropdown.length; i++) {
+  dropdown[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var dropdownContent = this.nextElementSibling;
+    var dropdownIcon = this.querySelector('.dropdown-icon');
+    if (dropdownContent.style.display === "block") {
+      dropdownContent.style.display = "none";
+      dropdownIcon.textContent = "expand_more";
+    } else {
+      dropdownContent.style.display = "block";
+      dropdownIcon.textContent = "expand_less";
+    }
+  });
+}
+
+/* Attach event listener to open-modal-link elements */
+var openModalLinks = document.getElementsByClassName('open-modal-link');
+for (var j = 0; j < openModalLinks.length; j++) {
+  openModalLinks[j].addEventListener('click', function(event) {
+    event.preventDefault();
+    var url = this.getAttribute('data-url');
+    uni_modal("Payments/Loan Repayment", url, "modal-lg");
+  });
+}
+</script>
+</aside>
+

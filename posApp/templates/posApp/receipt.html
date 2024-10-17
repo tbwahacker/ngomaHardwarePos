@@ -1,0 +1,147 @@
+{% load static %}
+{% load humanize %}
+<style>
+    #uni_modal .modal-footer {
+        display: none;
+    }
+    .product-row {
+        display: flex;
+        align-items: center;
+    }
+    .product-info {
+        flex: 1;
+    }
+    .product-total {
+        flex: 1;
+        font-weight: bold;
+    }
+    .product-qty {
+        flex-basis: 20%;
+        text-align: center;
+        font-weight: bold;
+    }
+    .product-amount {
+        flex-basis: 20%;
+        text-align: right;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+</style>
+
+<div class="container-fluid">
+    <div id="outprint">
+        <div class="lh-1">
+            <div style="text-align: center;">
+                <img class="img-responsive" src="{% static 'posApp/assets/material-admin/images/logo_sample.svg' %}" alt="Company Logo" id="companyLogo" style="width: 71px; border-radius: 43px;">
+            </div>
+            <br>
+            <div style="text-align: center;">
+                <small class="fw-bold">NGOMA  HARDWARE</small>
+            </div>
+            <br>
+            <div style="text-align: center;">
+                <small class="fw-bold">Customer Order Receipt</small>
+            </div>
+        </div>
+        <hr>
+        <div class="lh-1">
+            <div>
+                <span>Customer:</span>
+                <label class="fw-bold">
+                    {% if sale.customer.name %}
+                        {{ sale.customer.name }} - {{ sale.customer.phone }}
+                    {% else %}
+                        {{ sale.customer.phone }}
+                    {% endif %}
+                </label>
+                <br><br>
+                <span>Date:</span> {{ transaction.date_added|date:"M d Y" }} <br><br>
+                <div class="clear-fix py-1"></div>
+                <div class="fw-bold">
+                    <span>Order #. </span> {{ sale.id }}
+                </div>
+            </div>
+        </div>
+        <div class="clear-fix py-3"></div>
+        <div class="lh-1">
+            <div class="d-flex w-100 align-items-end border-bottom">
+                <div class="product-info fw-bold">Product</div>
+                <div class="product-qty fw-bold">Qty</div>
+                <div class="product-amount fw-bold">Price</div>
+            </div>
+            {% for item in salesItems %}
+                <div class="clear-fix py-2"></div>
+                <div class="product-row">
+                    <div class="product-info">
+                        <div class="lh-1">
+                            <small>{{ item.product_id.name }}</small><br>
+                        </div>
+                    </div>
+                    <div class="product-qty">{{ item.qty }}</div>
+                    <div class="product-amount">{{ item.tendered_price|intcomma }}</div>
+                </div>
+            {% endfor %}
+            <hr>
+            <div class="product-row">
+                <div class="product-total">Total  :</div>
+                <div class="product-qty">{{ item_counts }}</div>
+                <div class="product-amount">{{ total_price|intcomma }}</div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="clear-fix py-3"></div>
+    <div class="d-flex w-100 justify-content-end">
+        <button class="btn btn-secondary bg-gradient border rounded-0 btn-sm me-1" type="button" data-bs-dismiss="modal">
+            <i class="mdi mdi-close"></i> Close
+        </button>
+        <button class="btn btn-success bg-gradient border rounded-0 btn-sm" type="button" id="receipt_print">
+            <i class="mdi mdi-printer"></i> Print
+        </button>
+    </div>
+</div>
+
+<script>
+    $(function() {
+        $('#receipt_print').click(function() {
+            var head = $('head').clone();
+            var p = $('#outprint').clone();
+            var el = $("<div>");
+            head.append('' +
+                '<style>' +
+                '@media print { ' +
+                'body { background-color: unset !important; } ' +
+                '.product-row { display: flex; align-items: center; } ' +
+                '.product-qty, .product-amount {text-align: right; font-weight: bold; } ' +
+                '.product-qty { flex-basis: 20%; text-align: right; } ' +
+                '.product-info { flex: 1; text-align: left; } ' +
+                '.product-total {flex: 1;font-weight: bold;} ' +
+                '.product-amount { flex-basis: 20%; text-align: right; margin-right: 50px;} ' +
+                '.container-fluid { width: 100%; } ' +
+                '.lh-1 { line-height: 1.5; } ' +
+                '.d-flex { display: flex; } ' +
+                '.w-100 { width: 100%; } ' +
+                '.align-items-end { align-items: flex-end; } ' +
+                '.border-bottom { border-bottom: 1px solid #000; } ' +
+                '.fw-bold { font-weight: bold; } }' +
+                '</style>'
+            );
+            el.append(head);
+            el.find('title').text("Receipt - Print View");
+            el.append(p);
+            start_loader();
+            var nw = window.open('', '_blank', "width=1200,height=1000,left=300, top=200");
+            nw.document.write(el.html());
+            nw.document.close();
+            setTimeout(() => {
+                nw.print();
+                setTimeout(() => {
+                    nw.close();
+                    end_loader();
+                    window.location.href = "{% url 'sales-page' %}";
+                }, 250);
+            }, 300);
+        });
+    });
+</script>

@@ -1,0 +1,281 @@
+{% load humanize %}
+<div class="container-fluid">
+    <form action="" id="product-form">
+        <input type="hidden" name="id" value="{% if product.pk %}{{ product.pk }}{% endif %}">
+        <!-- Copy and Paste Buttons -->
+        <div class="row mb-3">
+            <div class="col-md-12 text-right">
+                <button type="button" class="btn btn-primary btn-sm" onclick="copyFormData()">Copy</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="pasteFormData()">Paste</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="code" class="control-label">Code</label>
+                    <input type="text" name="code" id="code" class="form-control form-control-sm rounded-0" value="{% if product.code %}{{ product.code }}{% else %} {{ code }}{% endif %}" required readonly>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="category_id" class="control-label">Category</label>
+                    <select name="category_id" id="category_id" class="form-select form-select-sm rounded-0" required>
+                        {% if not product.category_id %}
+                        <option value="" disabled selected></option>
+                        {% else %}
+                        <option value="" disabled></option>
+                        {% endif %}
+                        {% for category in categories %}
+                            {% if product.category_id == category.id %}
+                            <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                            {% else %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="name" class="control-label">Product Name</label>
+                    <input type="text" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if product.name %}{{ product.name }}{% endif %}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <div class="form-group mb-3">
+                    <label for="status" class="control-label">Status</label>
+                    <select name="status" id="status" class="form-select form-select-sm rounded-0" required>
+                        <option value="1" {% if product.status == 1 %}selected{% endif %}>Active</option>
+                        <option value="0" {% if product.status == 0 %}selected{% endif %}>Inactive</option>
+                    </select>
+                   </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="buying_price" class="control-label">Buying Price</label>
+                    <input type="text" name="buying_price" id="buying_price" class="form-control form-control-sm rounded-0" value="{% if product.buying_price %}{{ product.buying_price|intcomma }}{% endif %}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="price" class="control-label">Selling Price</label>
+                    <input type="text" name="price" id="price" class="form-control form-control-sm rounded-0" value="{% if product.price %}{{ product.price|intcomma }}{% endif %}" required>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="quantity" class="control-label">Quantity</label>
+                    <input type="number" name="quantity" id="quantity" class="form-control form-control-sm rounded-0" value="{% if product.quantity %}{{ product.quantity }}{% endif %}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="markup" class="control-label">Markup (%)  ** For Tiles only **</label>
+                    <input type="number" name="markup" id="markup" class="form-control form-control-sm rounded-0" value="{% if product.markup %}{{ product.markup }}{% endif %}">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="left_pieces" class="control-label">Other Pieces Left (If any)</label>
+                    <input type="number" name="left_pieces" id="left_pieces" class="form-control form-control-sm rounded-0" value="{% if product.left_pieces %}{{ product.left_pieces }}{% endif %}">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="max_pieces" class="control-label">Max. No. of pieces in a Box</label>
+                    <input type="number" name="max_pieces" id="max_pieces" class="form-control form-control-sm rounded-0" value="{% if product.max_pieces %}{{ product.max_pieces }}{% endif %}">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="min_quantity" class="control-label">Minimum Quantity to display red color alert</label>
+                    <input type="number" name="min_quantity" id="min_quantity" class="form-control form-control-sm rounded-0" value="{% if product.minimum_quantity %}{{ product.minimum_quantity }}{% endif %}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="unit_id" class="control-label">Units (Optional)</label>
+                    <select name="unit_id" id="unit_id" class="form-select form-select-sm rounded-0">
+                        {% if not product.units %}
+                        <option value="" disabled selected></option>
+                        {% else %}
+                        <option value="" disabled></option>
+                        {% endif %}
+                        {% for unit in units %}
+                            {% if product.units == unit.id %}
+                            <option value="{{ unit.id }}" selected>{{ unit.name }}</option>
+                            {% else %}
+                            <option value="{{ unit.id }}">{{ unit.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group mb-3">
+                    <label for="description" class="control-label">Description</label>
+                    <textarea rows="5" name="description" id="description" class="form-control form-control-sm rounded-0">{% if product.description %}{{ product.description }}{% endif %}</textarea>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+    <script>
+
+        function formatNumberWithCommas(value) {
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+       function removeCommas(value) {
+            return value.replace(/,/g, '');
+        }
+
+        document.getElementById('price').addEventListener('input', function(event) {
+           let value = event.target.value;
+           value = removeCommas(value);  // Remove any existing commas
+           if (!isNaN(value) && value !== '') {  // Ensure the value is a number
+              event.target.value = formatNumberWithCommas(value);
+            }
+           });
+         document.getElementById('buying_price').addEventListener('input', function(event) {
+           let value = event.target.value;
+           value = removeCommas(value);  // Remove any existing commas
+           if (!isNaN(value) && value !== '') {  // Ensure the value is a number
+              event.target.value = formatNumberWithCommas(value);
+            }
+           });
+
+
+        $(function() {
+
+            $('#category_id').select2({
+            placeholder: "Please Select Product Here",
+            width: '100%',
+            dropdownParent: $('#uni_modal')
+            });
+
+            $('#unit_id').select2({
+            placeholder: "Please Select Unit Here",
+            width: '100%',
+            dropdownParent: $('#uni_modal')
+            });
+
+             $('#status').select2({
+            placeholder: "Please Select Status Here",
+            width: '100%',
+            dropdownParent: $('#uni_modal')
+            });
+
+            $('#product-form').submit(function(e) {
+                e.preventDefault();
+                var _this = $(this)
+                $('.err-msg').remove();
+                var el = $('<div>')
+                el.addClass("alert alert-danger err-msg")
+                el.hide()
+                if (_this[0].checkValidity() == false) {
+                    _this[0].reportValidity();
+                    return false;
+                }
+
+                // Remove commas from new_pay before submission
+                var newPriceInput = document.getElementById('price');
+                newPriceInput.value = removeCommas(newPriceInput.value);
+
+                // Remove commas from buying_price before submission
+                var buyingPriceInput = document.getElementById('buying_price');
+                buyingPriceInput.value = removeCommas(buyingPriceInput.value);
+
+
+                start_loader();
+                $.ajax({
+                    headers: {
+                        "X-CSRFToken": '{{csrf_token}}'
+                    },
+                    url: "{% url 'save-product-page' %}",
+                    data: new FormData($(this)[0]),
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST',
+                    dataType: 'json',
+                    error: err => {
+                        console.log(err)
+                        end_loader();
+                    },
+                    success: function(resp) {
+                        if (typeof resp == 'object' && resp.status == 'success') {
+                            el.removeClass("alert alert-danger err-msg")
+                            location.reload()
+                        } else if (resp.status == 'failed' && !!resp.msg) {
+                            el.text(resp.msg)
+                        } else {
+                            el.text("An error occured", 'error');
+                            end_loader();
+                            console.err(resp)
+                        }
+                        _this.prepend(el)
+                        el.show('slow')
+                        $("html, body, .modal").scrollTop(0);
+                        end_loader()
+                    }
+                })
+            })
+        })
+    </script>
+<script>
+    function copyFormData() {
+        const form = document.getElementById('product-form');
+        const formData = new FormData(form);
+        const data = {};
+
+        formData.forEach((value, key) => {
+            if (key !== 'code') {  // Exclude the 'code' input field
+                data[key] = value;
+            }
+        });
+
+        localStorage.setItem('productFormData', JSON.stringify(data));
+        alert('Form data copied successfully!');
+    }
+
+    function pasteFormData() {
+        const data = JSON.parse(localStorage.getItem('productFormData'));
+
+        if (data) {
+            for (const [key, value] of Object.entries(data)) {
+                const element = document.querySelector(`[name="${key}"]`);
+
+                if (element) {
+                    if (element.type === 'checkbox' || element.type === 'radio') {
+                        element.checked = value === 'on';
+                    } else if (element.tagName.toLowerCase() === 'select') {
+                        element.value = value;
+                        $(element).trigger('change');  // If using select2 or similar
+                    } else {
+                        element.value = value;
+                    }
+                }
+            }
+
+            {#alert('Form data pasted successfully!');#}
+        } else {
+            alert('No form data found to paste.');
+        }
+    }
+</script>

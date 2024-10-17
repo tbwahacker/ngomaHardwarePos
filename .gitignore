@@ -1,0 +1,9 @@
+# Django #
+db.sqlite3
+ngomahardware.spec
+venv
+build
+dist
+dist/*
+*.pyc
+__pycache__/

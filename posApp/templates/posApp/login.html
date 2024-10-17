@@ -1,0 +1,529 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if page_title %}
+    <title>{{ page_title }} | NGOMA HARDWARE POS</title>
+    {% else %}
+    <title>NGOMA HARDWARE POS</title>
+    {% endif %}
+    <link rel="stylesheet" href="{% static 'posApp/assets/default/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'posApp/assets/bootstrap/css/bootstrap.min.css' %}">
+
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/mdi/css/materialdesignicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/css/vendor.bundle.base.css' %}">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/flag-icon-css/css/flag-icon.min.css' %}">
+    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/jvectormap/jquery-jvectormap.css' %}">
+    <!-- End plugin css for this page -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/css/demo/style.css' %}">
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{% static 'posApp/assets/material-admin/images/favicon.png' %}" />
+    <script src="{% static 'posApp/assets/default/js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'posApp/assets/bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'posApp/assets/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'posApp/assets/bootstrap/js/popper.min.js' %}"></script>
+</head>
+
+<body>
+    <script src="{% static 'posApp/assets/material-admin/js/preloader.js' %}"></script>
+    <div class="body-wrapper card border border-light-subtle rounded-3 shadow-sm">
+        <div class="main-wrapper card-body p-3 p-md-4 p-xl-5">
+            <div class="page-wrapper full-page-wrapper d-flex align-items-center justify-content-center">
+                <main class="auth-page">
+                    <div class="mdc-layout-grid">
+                        <div class="text-center mb-3">
+                            <a href="#!">
+                                <img src="{% static 'posApp/assets/material-admin/images/logo_sample.svg' %}" alt="BootstrapBrain Logo" width="175" height="57">
+                            </a>
+                        </div>
+                        <div class="mdc-layout-grid__cell--span-2-desktop"></div>
+                        <h3 class="text-center">NGOMA HARDWARE POS</h3>
+                        <div class="mdc-layout-grid__cell--span-2-desktop"></div><br>
+                        <h2 class="fs-6 fw-normal text-center mb-4">Sign in to your account</h2>
+                        <div class="mdc-layout-grid__inner">
+                            <div class="stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-1-tablet"></div>
+                            <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                                <div class="mdc-card">
+                                    <form id="login-user">
+                                        {% csrf_token %}
+                                        <div class="mdc-layout-grid">
+                                            <div class="mdc-layout-grid__inner">
+                                                <form action="" id="login" method="post">
+                                                    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+                                                        <div class="mdc-text-field w-100">
+                                                            <input class="mdc-text-field__input" name="username" id="text-field-hero-input">
+                                                            <div class="mdc-line-ripple"></div>
+                                                            <label for="text-field-hero-input" class="mdc-floating-label">Username</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+                                                        <div class="mdc-text-field w-100">
+                                                            <input class="mdc-text-field__input" name="password" type="password" id="text-field-hero-input" autocomplete="new-password" onfocus="this.setAttribute('autocomplete', 'new-password');">
+                                                            <div class="mdc-line-ripple"></div>
+                                                            <label for="text-field-hero-input" class="mdc-floating-label">Password</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+                                                        <button class="mdc-button mdc-button--raised w-100">
+                                                            Login
+                                                        </button>
+                                                    </div>
+                                                    <div class="mdc-layout-grid__cell text-center stretch-card mdc-layout-grid__cell--span-12">
+                                                        <div class="d-flex justify-content-center align-items-center">
+                                                            <h6 class="me-2 mb-0">Forgot password?</h6>
+                                                            <button type="button" class="btn btn-link p-0 align-baseline" onclick="showForgotPasswordModal()">Reset</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-1-tablet"></div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="forgotPasswordModalLabel">Forgot Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="forgotPasswordStep1">
+                        <div class="mb-3">
+                            <label for="forgotPasswordEmail" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="forgotPasswordEmail" placeholder="Enter your email">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="getCodeButton">Get Code</button>
+                    </div>
+                    <div id="forgotPasswordStep2" style="display: none;">
+                        <div class="mb-3">
+                            <label for="verificationCode" class="form-label">Enter code sent to your email</label>
+                            <input type="text" class="form-control" id="verificationCode" placeholder="Enter the code">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password" autocomplete="password" onfocus="this.setAttribute('autocomplete', 'new-password');">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmNewPassword" placeholder="Confirm new password" autocomplete="new-password" onfocus="this.setAttribute('autocomplete', 'new-password');">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="resetPasswordButton">Reset Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'posApp/assets/material-admin/vendors/js/vendor.bundle.base.js' %}"></script>
+    <script src="{% static 'posApp/assets/material-admin/js/material.js' %}"></script>
+    <script src="{% static 'posApp/assets/material-admin/js/misc.js' %}"></script>
+    <script src="{% static 'posApp/assets/material-admin/js/dashboard.js' %}"></script>
+    <script>
+        function showForgotPasswordModal() {
+            $('#forgotPasswordModal').modal('show');
+        }
+
+        function resetForgotPasswordModal() {
+            $('#forgotPasswordStep1').show();
+            $('#forgotPasswordStep2').hide();
+            $('#forgotPasswordEmail').val('');
+            $('#verificationCode').val('');
+            $('#newPassword').val('');
+            $('#confirmNewPassword').val('');
+        }
+
+        $(document).ready(function () {
+            $('#forgotPasswordModal').on('hidden.bs.modal', function () {
+                resetForgotPasswordModal();
+            });
+
+            $('#getCodeButton').click(function () {
+                // Here you would typically send the email to the server to get the code
+                // For now, we just simulate the process by showing the next step
+
+                $('#forgotPasswordStep1').hide();
+                $('#forgotPasswordStep2').show();
+            });
+
+            $('#resetPasswordButton').click(function () {
+                // Here you would typically handle the password reset process
+                // For now, we just simulate the process
+
+                //alert('Verifying...');
+                $('#forgotPasswordModal').modal('hide');
+            });
+        });
+
+        window.start_loader = function () {
+            $('body').removeClass('loaded');
+        };
+        window.end_loader = function () {
+            $('body').addClass('loaded');
+        };
+        window.uni_modal = function ($title = '', $url = '', $size = "") {
+            start_loader();
+            $.ajax({
+                url: $url,
+                error: err => {
+                    console.log();
+                    alert("An error occurred");
+                },
+                success: function (resp) {
+                    if (resp) {
+                        $('#uni_modal .modal-title').html($title);
+                        $('#uni_modal .modal-body').html(resp);
+                        if ($size != '') {
+                            $('#uni_modal .modal-dialog').addClass($size + '  modal-dialog-centered');
+                        } else {
+                            $('#uni_modal .modal-dialog').removeAttr("class").addClass("modal-dialog modal-md modal-dialog-centered");
+                        }
+                        $('#uni_modal').modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            focus: true
+                        });
+                        $('#uni_modal').modal('show');
+                        end_loader();
+                    }
+                }
+            });
+        };
+        window._conf = function ($msg = '', $func = '', $params = []) {
+            $('#confirm_modal #confirm').attr('onclick', $func + "(" + $params.join(',') + ")");
+            $('#confirm_modal .modal-body').html($msg);
+            $('#confirm_modal').modal('show');
+        };
+        $(function () {
+            $('#login-user').submit(function (e) {
+                e.preventDefault();
+                var _this = $(this);
+                $('.err-msg').remove();
+                var el = $('<div>');
+                el.addClass("alert alert-danger err-msg");
+                el.hide();
+                if (_this[0].checkValidity() == false) {
+                    _this[0].reportValidity();
+                    return false;
+                }
+                start_loader();
+                $.ajax({
+                    headers: {
+                        "X-CSRFToken": '{{csrf_token}}'
+                    },
+                    url: "{% url 'login-user' %}",
+                    data: new FormData($(this)[0]),
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST',
+                    dataType: 'json',
+                    error: err => {
+                        console.log(err);
+                        alert_toast("An error occurred", 'error');
+                        end_loader();
+                    },
+                    success: function (resp) {
+                        if (typeof resp == 'object' && resp.status == 'success') {
+                            el.removeClass("alert alert-danger err-msg");
+                            location.href = "{% url 'home-page' %}";
+                        } else if (resp.status == 'failed' && !!resp.msg) {
+                            el.text(resp.msg);
+                        } else {
+                            el.text("An error occurred", 'error');
+                            end_loader();
+                            console.err(resp);
+                        }
+                        _this.prepend(el);
+                        el.show('slow');
+                        $("html, body, .modal").scrollTop(0);
+                        end_loader();
+                    }
+                });
+            });
+        });
+
+        // forgot password
+        $(document).ready(function () {
+    $('#getCodeButton').click(function () {
+        var email = $('#forgotPasswordEmail').val();
+        // Validate email format
+        if (!isValidEmail(email)) {
+            alert('Please enter a valid email address.');
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "generate-reset-code" %}',
+            data: {
+                email: email,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert('Code sent to your email. Check your inbox.');
+                    $('#forgotPasswordStep1').hide();
+                    $('#forgotPasswordStep2').show();
+                } else {
+                    alert('Error sending code. Please try again later.');
+                }
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ': ' + xhr.responseText);
+            }
+        });
+    });
+
+    $('#resetPasswordButton').click(function () {
+        var code = $('#verificationCode').val();
+        var newPassword = $('#newPassword').val();
+        var confirmPassword = $('#confirmNewPassword').val();
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "reset-password" %}',
+            data: {
+                code: code,
+                newPassword: newPassword,
+                confirmPassword: confirmPassword,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    alert('Password reset successfully. You can now login with your new password.');
+                    $('#forgotPasswordModal').modal('hide');
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(xhr.status + ': ' + xhr.responseText);
+            }
+        });
+    });
+
+    function isValidEmail(email) {
+        var regex = /\S+@\S+\.\S+/;
+        return regex.test(email);
+    }
+});
+
+    </script>
+</body>
+
+</html>
+
+
+
+{#{% load static %}#}
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{##}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta http-equiv="X-UA-Compatible" content="IE=edge">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1.0"> {% if page_title %}#}
+{#    <title>{{ page_title }} | NGOMA HARDWARE POS</title>#}
+{#    {% else %}#}
+{#    <title>NGOMA HARDWARE POS</title>#}
+{#    {% endif %}#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/default/css/style.css' %}">#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/bootstrap/css/bootstrap.min.css' %}">#}
+{##}
+{#    <!-- plugins:css -->#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/mdi/css/materialdesignicons.min.css' %}">#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/css/vendor.bundle.base.css' %}">#}
+{#    <!-- endinject -->#}
+{#    <!-- Plugin css for this page -->#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/flag-icon-css/css/flag-icon.min.css' %}">#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/vendors/jvectormap/jquery-jvectormap.css' %}">#}
+{#    <!-- End plugin css for this page -->#}
+{#    <!-- Layout styles -->#}
+{#    <link rel="stylesheet" href="{% static 'posApp/assets/material-admin/css/demo/style.css' %}">#}
+{#    <!-- End layout styles -->#}
+{#    <link rel="shortcut icon" href="{% static 'posApp/assets/material-admin/images/favicon.png' %}" />#}
+{#    <script src="{% static 'posApp/assets/default/js/jquery-3.6.0.min.js' %}">#}
+{#    </script>#}
+{#    <script src="{% static 'posApp/assets/bootstrap/js/bootstrap.min.js' %}"></script>#}
+{#    <script src="{% static 'posApp/assets/bootstrap/js/bootstrap.bundle.min.js' %}"></script>#}
+{#    <script src="{% static 'posApp/assets/bootstrap/js/popper.min.js' %}"></script>#}
+{#</head>#}
+{##}
+{#<body>#}
+{#    <script src="{% static 'posApp/assets/material-admin/js/preloader.js' %}"></script>#}
+{#    <div class="body-wrapper card border border-light-subtle rounded-3 shadow-sm">#}
+{#        <div class="main-wrapper card-body p-3 p-md-4 p-xl-5">#}
+{#            <div class="page-wrapper full-page-wrapper d-flex align-items-center justify-content-center">#}
+{#                <main class="auth-page">#}
+{#                    <div class="mdc-layout-grid">#}
+{#                        <div class="text-center mb-3">#}
+{#                            <a href="#!">#}
+{#                            <img src="./static/posApp/assets/material-admin/images/logo_sample.svg" alt="BootstrapBrain Logo" width="175" height="57">#}
+{#                            </a>#}
+{#                        </div>#}
+{#                        <div class="mdc-layout-grid__cell--span-2-desktop"></div>#}
+{#                        <h3 class="text-center">NGOMA HARDWARE POS</h3>#}
+{#                        <div class="mdc-layout-grid__cell--span-2-desktop"></div><br>#}
+{#                        <h2 class="fs-6 fw-normal text-center mb-4">Sign in to your account</h2>#}
+{#                        <div class="mdc-layout-grid__inner">#}
+{#                            <div class="stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-1-tablet"></div>#}
+{#                            <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">#}
+{#                                <div class="mdc-card">#}
+{#                                    <form id="login-user" >#}
+{#                                        {% csrf_token %}#}
+{#                                        <div class="mdc-layout-grid">#}
+{#                                            <div class="mdc-layout-grid__inner">#}
+{#                                                <form action="" id="login" method="post" >#}
+{#                                                    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">#}
+{#                                                        <div class="mdc-text-field w-100">#}
+{#                                                            <input class="mdc-text-field__input" name="username" id="text-field-hero-input">#}
+{#                                                            <div class="mdc-line-ripple"></div>#}
+{#                                                            <label for="text-field-hero-input" class="mdc-floating-label">Username</label>#}
+{#                                                        </div>#}
+{#                                                    </div>#}
+{#                                                    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">#}
+{#                                                        <div class="mdc-text-field w-100">#}
+{#                                                            <input class="mdc-text-field__input" name="password" type="password" id="text-field-hero-input"  autocomplete="new-password" onfocus="this.setAttribute('autocomplete', 'new-password');">#}
+{#                                                            <div class="mdc-line-ripple"></div>#}
+{#                                                            <label for="text-field-hero-input" class="mdc-floating-label">Password</label>#}
+{#                                                        </div>#}
+{#                                                    </div>#}
+{#                                                    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">#}
+{#                                                        <button class="mdc-button mdc-button--raised w-100">#}
+{#                                                            Login#}
+{#                                                        </button>#}
+{#                                                    </div>#}
+{#                                                </form>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </form>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                            <div class="stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-1-tablet"></div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </main>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#    <script>#}
+{#        window.start_loader = function() {#}
+{#            $('body').removeClass('loaded')#}
+{#        }#}
+{#        window.end_loader = function() {#}
+{#            $('body').addClass('loaded')#}
+{#        }#}
+{#        window.uni_modal = function($title = '', $url = '', $size = "") {#}
+{#            start_loader()#}
+{#            $.ajax({#}
+{#                url: $url,#}
+{#                error: err => {#}
+{#                    console.log()#}
+{#                    alert("An error occured")#}
+{#                },#}
+{#                success: function(resp) {#}
+{#                    if (resp) {#}
+{#                        $('#uni_modal .modal-title').html($title)#}
+{#                        $('#uni_modal .modal-body').html(resp)#}
+{#                        if ($size != '') {#}
+{#                            $('#uni_modal .modal-dialog').addClass($size + '  modal-dialog-centered')#}
+{#                        } else {#}
+{#                            $('#uni_modal .modal-dialog').removeAttr("class").addClass("modal-dialog modal-md modal-dialog-centered")#}
+{#                        }#}
+{#                        $('#uni_modal').modal({#}
+{#                            backdrop: 'static',#}
+{#                            keyboard: false,#}
+{#                            focus: true#}
+{#                        })#}
+{#                        $('#uni_modal').modal('show')#}
+{#                        end_loader()#}
+{#                    }#}
+{#                }#}
+{#            })#}
+{#        }#}
+{#        window._conf = function($msg = '', $func = '', $params = []) {#}
+{#            $('#confirm_modal #confirm').attr('onclick', $func + "(" + $params.join(',') + ")")#}
+{#            $('#confirm_modal .modal-body').html($msg)#}
+{#            $('#confirm_modal').modal('show')#}
+{#        }#}
+{#        $(function() {#}
+{##}
+{#        })#}
+{#    </script>#}
+{##}
+{#    <script src="{% static 'posApp/assets/material-admin/vendors/js/vendor.bundle.base.js' %}"></script>#}
+{#    <script src="{% static 'posApp/assets/material-admin/js/material.js' %}"></script>#}
+{#    <script src="{% static 'posApp/assets/material-admin/js/misc.js' %}"></script>#}
+{#    <script src="{% static 'posApp/assets/material-admin/js/dashboard.js' %}"></script>#}
+{#    <script>#}
+{#        $(function() {#}
+{#            $('#login-user').submit(function(e) {#}
+{#                e.preventDefault();#}
+{#                var _this = $(this)#}
+{#                $('.err-msg').remove();#}
+{#                var el = $('<div>')#}
+{#                el.addClass("alert alert-danger err-msg")#}
+{#                el.hide()#}
+{#                if (_this[0].checkValidity() == false) {#}
+{#                    _this[0].reportValidity();#}
+{#                    return false;#}
+{#                }#}
+{#                start_loader();#}
+{#                $.ajax({#}
+{#                    headers: {#}
+{#                        "X-CSRFToken": '{{csrf_token}}'#}
+{#                    },#}
+{#                    url: "{% url 'login-user' %}",#}
+{#                    data: new FormData($(this)[0]),#}
+{#                    cache: false,#}
+{#                    contentType: false,#}
+{#                    processData: false,#}
+{#                    method: 'POST',#}
+{#                    type: 'POST',#}
+{#                    dataType: 'json',#}
+{#                    error: err => {#}
+{#                        console.log(err)#}
+{#                        alert_toast("An error occured", 'error');#}
+{#                        end_loader();#}
+{#                    },#}
+{#                    success: function(resp) {#}
+{#                        if (typeof resp == 'object' && resp.status == 'success') {#}
+{#                            el.removeClass("alert alert-danger err-msg")#}
+{#                            location.href = "{% url 'home-page' %}"#}
+{#                        } else if (resp.status == 'failed' && !!resp.msg) {#}
+{#                            el.text(resp.msg)#}
+{#                        } else {#}
+{#                            el.text("An error occured", 'error');#}
+{#                            end_loader();#}
+{#                            console.err(resp)#}
+{#                        }#}
+{#                        _this.prepend(el)#}
+{#                        el.show('slow')#}
+{#                        $("html, body, .modal").scrollTop(0);#}
+{#                        end_loader()#}
+{#                    }#}
+{#                })#}
+{#            })#}
+{#        })#}
+{#    </script>#}
+{#</body>#}
+{##}
+{#</html>#}

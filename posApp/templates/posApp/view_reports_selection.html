@@ -1,0 +1,198 @@
+{% extends "posApp/base.html" %}
+{% load humanize %}
+{% block pageContent %}
+{#<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">#}
+{#    <div class="mdc-card">#}
+{#        <div class="d-flex justify-content-between">#}
+{#            <h4 class="card-title mb-0">All Reports & Dashboards</h4>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div>Other Reports & Dashboard</div>
+</div>
+{% if perms.posApp.view_category %}
+    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--success">
+        <div class="card-inner go-to-category">
+            <h5 class="card-title">{{ translations.categories }}</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ categories|intcomma }}</h5>
+            <p class="tx-12 text-muted">{{ translations.overall_count_categories }}</p>
+            <div class="card-icon-wrapper">
+                <i class="material-icons">list</i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if perms.posApp.view_products %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--primary">
+        <div class="card-inner go-to-products">
+            <h5 class="card-title">{{ translations.products }}</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ products|intcomma }}</h5>
+            <p class="tx-12 text-muted">{{ translations.overall_count_products }}</p>
+            <div class="card-icon-wrapper">
+                <i class="material-icons">label</i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if perms.posApp.view_sales and user.is_staff %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--info">
+        <div class="card-inner go-to-sales">
+            <h5 class="card-title">{{ translations.todays_transactions }}</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ transaction|intcomma }}</h5>
+            <p class="tx-12 text-muted">{{ translations.overall_count_todays_transactions}}</p>
+            <div class="card-icon-wrapper">
+                <i class="material-icons">receipt</i>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--warning">
+        <div class="card-inner go-to-sales">
+            <h5 class="card-title">{{ translations.todays_sales}}</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_sales|intcomma }} TZS </h5>
+            <p class="tx-12 text-muted">{{ translations.overall_count_todays_sale }}</p>
+            <div class="card-icon-wrapper">
+                <i class="mdi mdi-cash-multiple"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% if not perms.posApp.view_category and not perms.posApp.view_products and not perms.posApp.view_sales %}
+    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+{#    <div class="mdc-card">#}
+            <h6 class="card-title mb-3 ">You have no any permissions to view this content, Please contact admin.. +255768571150 Or 0685750593</h6>
+{#    </div>#}
+  </div>
+{% endif %}
+ <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <hr class="w-100">
+</div>
+{% if perms.posApp.view_category %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--success">
+        <div class="card-inner go-to-10-sales">
+            <h5 class="card-title">Last 10 Sales</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">-</h5>
+            <p class="tx-12 text-muted">10 Count for Sales</p>
+            <div class="card-icon-wrapper">
+                <i class="material-icons"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if perms.posApp.view_products %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--primary">
+        <div class="card-inner go-to-purchases">
+            <h5 class="card-title">Purchases</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">-</h5>
+            <p class="tx-12 text-muted">History of purchasing goods to store</p>
+            <div class="card-icon-wrapper">
+                <i class="material-icons"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% if perms.posApp.view_sales %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">
+    <div class="mdc-card info-card info-card--info">
+        <div class="card-inner go-to-stocks">
+            <h5 class="card-title">Products In & Out (Stock Movement)</h5>
+            <h5 class="font-weight-light pb-2 mb-1 border-bottom">-</h5>
+            <p class="tx-12 text-muted">Over all Stock Movement</p>
+            <div class="card-icon-wrapper">
+                <i class="material-icons">umbrella</i>
+            </div>
+        </div>
+    </div>
+</div>
+{#<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-3-tablet">#}
+{#    <div class="mdc-card info-card info-card--warning">#}
+{#        <div class="card-inner go-to-sales">#}
+{#            <h5 class="card-title">Monthly Sales report</h5>#}
+{#            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_sales|intcomma }} TZS</h5>#}
+{#            <p class="tx-12 text-muted">Get to know profit and loss for the whole month </p>#}
+{#            <div class="card-icon-wrapper">#}
+{#               <i class="material-icons"></i>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+{% endif %}
+{% if not perms.posApp.view_category and not perms.posApp.view_products and not perms.posApp.view_sales %}
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <h6 class="card-title mb-3">You have no permissions to view this content. Please contact admin: +255768571150 or 0685750593.</h6>
+</div>
+{% endif %}
+{% endblock pageContent %}
+
+{% block ScriptBlock %}
+<script>
+$(function() {
+            $('.go-to-category').click(function(event) {
+            event.preventDefault();
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'category-page' %}',
+                success: function() {
+                    window.location.href = '{% url "category-page" %}';  // Redirect to login or any other page after logout
+                },
+                error: function() {
+                    alert('An error occurred.');
+                }
+            })
+        })
+        $('.go-to-products').click(function(event) {
+            event.preventDefault();
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'product-page' %}',
+                success: function() {
+                    window.location.href = '{% url "product-page" %}';  // Redirect to login or any other page after logout
+                },
+                error: function() {
+                    alert('An error occurred.');
+                }
+            })
+        })
+        $('.go-to-sales').click(function(event) {
+            event.preventDefault();
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'sales-page' %}',
+                success: function() {
+                    window.location.href = '{% url "sales-page" %}';  // Redirect to login or any other page after logout
+                },
+                error: function() {
+                    alert('An error occurred.');
+                }
+            })
+        })
+
+    $('.go-to-10-sales').click(function(event) {
+        event.preventDefault();
+        window.location.href = '{% url "sales-report" %}';
+    });
+    $('.go-to-purchases').click(function(event) {
+        event.preventDefault();
+        window.location.href = '{% url "purchases-report" %}';
+    });
+    $('.go-to-stocks').click(function(event) {
+        event.preventDefault();
+        window.location.href = '{% url "stocks-report" %}';
+    });
+});
+</script>
+{% endblock ScriptBlock %}

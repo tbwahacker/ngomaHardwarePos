@@ -1,0 +1,524 @@
+{% extends "posApp/base.html" %}
+{% block pageContent %}
+<style>
+    .full-width-input {
+        width: 100% !important;
+        min-width: 50px; /* Ensures a reasonable width on very small screens */
+    }
+
+    @media (max-width: 576px) {
+        .full-width-input {
+            min-width: 100px; /* Increase minimum width for better usability on extra small screens */
+        }
+    }
+</style>
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">Point of Sales</h4>
+            <button class="btn btn-primary bg-gradient btn-sm rounded-0" id="view_sales">
+                <i class="material-icons mdc-button__icon">reply_all</i><span> View Sales</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
+    <div class="mdc-card">
+        <form action="" id="pos-form">
+            <fieldset>
+                <legend>Create Order</legend>
+                <div class="row align-items-end">
+                    <div class="col-lg-4 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
+                        <div class="form-group mb-3">
+                            <label for="customer" class="control-label">Customer</label>
+                            <select id="customer" name="customer" class="form-control form-control-sm rounded-0">
+                            <option  disabled selected>Select Customer</option>
+                                {% for customer in customers %}
+                                   <option value="{{ customer.id }}">
+                                   {% if customer.name %}
+                                   {{ customer.name }}
+                                   {% else %}
+                                   {{ customer.phone }}
+                                   {% endif %}
+                                   </option>
+                                {% endfor %}
+                            </select>
+                        </div><br>
+                    <button class="btn-light bg-gradient btn-sm rounded-0 m-1 mt-2" id="create_chap_chap_customer" title="Create Chap chap customer">
+                        <i class="mdi mdi-plus"></i>
+                    </button>
+                    </div>
+                    <div class="col-lg-4 col-md-5 col-sm-12">
+                        <div class="form-group mb-3">
+                            <label for="product-id">Select Product</label>
+                            <select id="product-id" class="form-select form-select-sm" multiple>
+                                <option value="" disabled selected></option>
+                                {% if user.is_staff %}
+                                    {% for product in products %}
+                                    <option value="{{ product.pk }}">{{ product }} ==> {{ product.quantity }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for product in products %}
+                                    <option value="{{ product.pk }}">{{ product }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
+                         <div class="form-group mb-3">
+                             <label for="payment_method" class="control-label">Payment Method</label>
+                             <select id="payment_method" name="payment_method" class="form-control form-control-sm rounded-0">
+                            <option  disabled selected>Select Payment Method</option>
+                                {% for payment_method in payment_methods %}
+                                   <option value="{{ payment_method.code }}">{{ payment_method.name }}</option>
+                                {% endfor %}
+                            </select>
+                         </div>
+                         <button class="btn-light bg-gradient btn-sm rounded-0 m-1 mt-2" id="create_chap_chap_payment_method" title="Create Chap chap Payment-Pethod">
+                          <i class="mdi mdi-plus"></i>
+                         </button>
+                    </div>
+                    <div class="col-lg-4 col-md-5 col-sm-12">
+                        <div class="form-group mb-3" >
+                            <label for="phone_no">Customer Phone Number</label>
+                            <input type="number" name="phone_no" placeholder="eg. 0768571150" class="form-control form-control-sm text-start" step="any" id="phone_no">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-5 col-md-12">
+                        <div class="form-group mb-3">
+                            <input type="hidden" class="form-control form-control-sm text-center" step="any" id="product-qty" value="1">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-2 col-md-12">
+                        <div class="form-group mb-3 d-flex">
+                            <button class="btn btn-primary btn-sm rounded-0 ml-auto font-weight-bold w-100" style="background-color: green;" type="button" id="check_out">
+                                <i class="mdi mdi-save"></i> SAVE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <div class="d-flex w-100" id="POS-field">
+                    <div class="col-8 bg-gradient bg-light border h-100" style="height: 400px; overflow-y: auto;">
+                        <table class="table table-bordered">
+{#                            <colgroup>#}
+{#                                <col width="5%">#}
+{#                                <col width="15%">#}
+{#                                <col width="20%">#}
+{#                                <col width="5%">#}
+{#                                <col width="15%">#}
+{#                                <col width="30%">#}
+{#                                <col width="20%">#}
+{#                            </colgroup>#}
+                            <thead>
+                                <tr class="bg-dark bg-gradient bg-opacity-50 text-light">
+                                    <th class="py-1 px-2 text-center text-light"></th>
+                                    <th class="py-1 px-2 text-center text-white">QTY</th>
+                                    <th class="py-1 px-2 text-center text-white">Product</th>
+                                    {% if user.is_staff %}
+                                    <th class="py-1 px-2 text-center text-white">Stock</th>
+                                    <th class="py-1 px-2 text-center text-white">Price</th>
+                                    {% endif %}
+                                    <th class="py-1 px-2 text-center text-white">Tendered Price</th>
+                                    {% if user.is_staff %}
+                                    <th class="py-1 px-2 text-center text-white">Total</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-4 bg-gradient bg-dark bg-opacity-50 border h-100" style="overflow-y: auto;">
+                        <div class="col-12 py-4 px-2">
+                            <dl>
+                                <dt class="h4 fw-bold text-light" style="display: none;">Tendered Sub Total </dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light" style="display: none;">
+                                    <input type="hidden" name="tendered_total" value="0">
+                                    <span class="h3 fw-bold" id="tendered_total">0.00</span>
+                                </dd>
+                                <dt class="h4 fw-bold text-light" style="display: none;">Sub Total </dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light" style="display: none;">
+                                    <input type="hidden" name="sub_total" value="0">
+                                    <span class="h3 fw-bold" id="sub_total">0.00</span>
+                                </dd>
+                                <dt class="h4 fw-bold text-light">Tax Inclusive (%)</dt>
+                                <dd>
+                                    <input type="number" class="form-control form-control-lg rounded-0 text-end" step="any" min="0" max="100" name="tax" value="0">
+                                </dd>
+                                <dt class="h4 fw-bold text-light">Tax Amount</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="tax_amount" value="0">
+                                    <span class="h3 fw-bold" id="tax_amount">0.00</span>
+                                </dd>
+                                <dt class="h4 fw-bold text-light" style="display: none;">Grand Total</dt>
+                                <dd class="text-end py-1 px-2 rounded-0 bg-light" style="display: none;">
+                                    <input type="hidden" name="grand_total" value="0">
+                                    <span class="h3 fw-bold" id="grand_total">0.00</span>
+                                </dd>
+{#                                {% if user.is_staff %}#}
+                                 <dt class="h4 fw-bold text-light">Tendered Amount</dt>
+                                 <dd class="text-end py-1 px-2 rounded-0 bg-light">
+                                    <input type="hidden" name="tendered_amount" value="0">
+                                    <span class="h3 fw-bold" id="tendered_amount">0.00</span>
+                                </dd>
+{#                                {% else %}#}
+{#                                    <input type="hidden" name="tendered_amount" value="0">#}
+{#                                {% endif %}#}
+                                <dt class="h4 fw-bold text-light">Advance Amount</dt>
+                                <dd>
+                                    <input type="text" id="advance_amount" class="form-control form-control-lg rounded-0 text-end" step="any" name="advance_amount" value="0">
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+{#<noscript id="item-clone">#}
+{#    <tr>#}
+{#        <td class="px-2 py-1 text-center">#}
+{#            <button class="btn btn-sm btn-outline-danger rounded-0 rem-item" type="button"><i class="mdi mdi-close"></i></button>#}
+{#        </td>#}
+{#        <td class="px-2 py-1">#}
+{#            <input type="hidden" name="product_id[]">#}
+{#            <input type="text" name="qty[]" min="0" class="form-control form-control-sm rounded-0 text-center full-width-input">#}
+{#        </td>#}
+{#        <td class="px-2 py-1 product_name text-center"></td>#}
+{#        {% if user.is_staff %}#}
+{#        <td class="px-2 py-1 stock text-center"></td>#}
+{#        <td class="px-2 py-1">#}
+{#            <input type="hidden" name="price[]" class="form-control form-control-sm rounded-0 text-end product_price_input">#}
+{#            <span class="price_text"></span>#}
+{#        </td>#}
+{#        {% else %}#}
+{#            <input type="hidden" name="price[]" class="form-control form-control-sm rounded-0 text-end product_price_input">#}
+{#        {% endif %}#}
+{#        <td class="px-2 py-1">#}
+{#            <input type="text" name="tendered_price[]" step="any" class="form-control form-control-sm rounded-0 text-end tendered_price_input full-width-input">#}
+{#        </td>#}
+{#        {% if user.is_staff %}#}
+{#         <td class="px-2 py-1 product_total text-end"></td>#}
+{#        {% else %}#}
+{#         <td class="px-2 py-1 product_total text-end"></td>#}
+{#        {% endif %}#}
+{#    </tr>#}
+{#</noscript>#}
+<noscript id="item-clone">
+    <tr>
+        <td class="px-2 py-1 text-center">
+            <button class="btn btn-sm btn-outline-danger rounded-0 rem-item" type="button"><i class="mdi mdi-close"></i></button>
+        </td>
+        <td class="px-2 py-1">
+            <input type="hidden" name="product_id[]">
+            <!-- Error message span -->
+            <span class="text-danger quantity-error" style="display: none;">Qty exceeds stock!</span>
+            <input type="text" name="qty[]" min="0" class="form-control form-control-sm rounded-0 text-center full-width-input">
+        </td>
+        <td class="px-2 py-1 product_name text-center"></td>
+        {% if user.is_staff %}
+        <td class="px-2 py-1 stock text-center"></td>
+        <td class="px-2 py-1">
+            <input type="hidden" name="price[]" class="form-control form-control-sm rounded-0 text-end product_price_input">
+            <span class="price_text"></span>
+        </td>
+        {% else %}
+            <input type="hidden" name="price[]" class="form-control form-control-sm rounded-0 text-end product_price_input">
+        {% endif %}
+        <td class="px-2 py-1">
+            <input type="text" name="tendered_price[]" step="any" class="form-control form-control-sm rounded-0 text-end tendered_price_input full-width-input">
+        </td>
+        {% if user.is_staff %}
+         <td class="px-2 py-1 product_total text-end"></td>
+        {% else %}
+{#         <td class="px-2 py-1 product_total text-end"></td>#}
+        {% endif %}
+    </tr>
+</noscript>
+
+{% endblock pageContent %}
+
+{% block ScriptBlock %}
+<script>
+function formatNumberWithCommas(value) {
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+       function removeCommas(value) {
+            return value.replace(/,/g, '');
+        }
+        document.getElementById('advance_amount').addEventListener('input', function(event) {
+           let value = event.target.value;
+           value = removeCommas(value);  // Remove any existing commas
+           if (!isNaN(value) && value !== '') {  // Ensure the value is a number
+              event.target.value = formatNumberWithCommas(value);
+            }
+           });
+
+    // Commas for tendered_price
+$(function() {
+    // Function to format all tendered_price inputs
+    function formatTenderedPriceInputs() {
+        $('.tendered_price_input').each(function() {
+            let value = $(this).val();
+            $(this).val(formatNumberWithCommas(removeCommas(value)));
+        });
+    }
+
+    // Initial formatting for existing inputs
+    formatTenderedPriceInputs();
+
+    // Apply formatting when input changes
+    $(document).on('input', '.tendered_price_input', function() {
+        let value = $(this).val();
+        value = removeCommas(value); // Remove existing commas
+        if (!isNaN(value) && value !== '') { // Ensure it's a number
+            $(this).val(formatNumberWithCommas(value));
+        }
+    });
+
+    // Example of dynamically adding inputs
+    function addDynamicInputs() {
+        // Example of adding new inputs dynamically
+        $('#dynamic-container').append(`
+            <input type="text" name="tendered_price[]" step="any" class="form-control form-control-sm rounded-0 text-end tendered_price_input full-width-input">
+        `);
+
+        // Format new inputs
+        formatTenderedPriceInputs();
+    }
+
+    // Call this function whenever you add new inputs dynamically
+    addDynamicInputs();
+});
+
+</script>
+<script>
+    var product_json = '{{ product_json|escapejs }}';
+    product_json = product_json ? JSON.parse(product_json) : {};
+    var prod_arr = {};
+    for (var k in product_json) {
+        if (product_json.hasOwnProperty(k)) {
+            prod_arr[product_json[k].id] = product_json[k];
+        }
+    }
+
+    function calc() {
+        var sub_total = 0;
+        var tendered_total = 0;
+        $('#POS-field table tbody tr').each(function() {
+            var price = $(this).find('[name="price[]"]').val();
+            var qty = $(this).find('[name="qty[]"]').val();
+            var tendered_price = removeCommas($(this).find('[name="tendered_price[]"]').val());
+
+            if (!tendered_price || tendered_price.trim() === "") {
+                    tendered_price = parseFloat(price); // Set to price if tendered_price is null
+                }
+
+            var row_total = parseFloat(price) * parseFloat(qty);
+            var row_tendered_total = parseFloat(tendered_price) * parseFloat(qty);
+
+            sub_total += row_total;
+            tendered_total += row_tendered_total;
+
+            console.log(tendered_price)
+
+            {#$(this).find('.product_total').text(parseFloat(row_total).toLocaleString('en-US'));#}
+            $(this).find('.product_total').text(parseFloat(row_tendered_total).toLocaleString('en-US'));
+        });
+
+        var tax = parseFloat($('[name="tax"]').val()) / 100;
+        var tax_amount = sub_total * tax;
+        var grand_total = sub_total + tax_amount;
+        var tendered_amount = tendered_total + tax_amount;
+
+        $('#tax_amount').text(tax_amount.toFixed(2));
+        $('[name="tax_amount"]').val(tax_amount.toFixed(2));
+        $('#grand_total').text(parseFloat(grand_total).toLocaleString('en-US'));
+        $('[name="grand_total"]').val(parseFloat(grand_total).toFixed(2));
+        $('#sub_total').text(parseFloat(sub_total).toLocaleString('en-US'));
+        $('[name="sub_total"]').val(parseFloat(sub_total).toFixed(2));
+        $('#tendered_total').text(parseFloat(tendered_total).toLocaleString('en-US'));
+        $('[name="tendered_total"]').val(parseFloat(tendered_total).toFixed(2));
+        $('#tendered_amount').text(parseFloat(tendered_amount).toLocaleString('en-US'));
+        $('[name="tendered_amount"]').val(parseFloat(tendered_amount).toFixed(2));
+    }
+
+    $(function() {
+        $('#product-id').select2({
+            placeholder: "Please Select Product here",
+            width: '100%'
+        });
+        $('#customer').select2({
+            placeholder: "Please Select Customer here",
+            width: '100%'
+        });
+        $('#payment_method').select2({
+            placeholder: "Please Select Payment Method here",
+            width: '100%'
+        });
+
+        function addItemToList(id, qty) {
+            if (prod_arr.hasOwnProperty(id)) {
+                if ($('#POS-field table tbody input[name="product_id[]"][value="' + id + '"]').length > 0) {
+                    alert('Item Already in the List.');
+                    return;
+                }
+                var data = prod_arr[id];
+                var tr = $($('noscript#item-clone').html()).clone();
+                {#tr.find('[name="qty[]"]').val(qty);#}
+                tr.find('[name="product_id[]"]').val(id);
+                tr.find('[name="price[]"]').val(data.price);
+                {#tr.find('[name="tendered_price[]"]').val(data.price);#}
+                tr.find('.product_name').text(data.name);
+                tr.find('.stock').text(data.quantity);
+                tr.find('.price_text').text(parseFloat(data.price).toLocaleString('en-US'));
+                tr.find('.product_total').text(parseFloat(data.price * qty).toLocaleString('en-US'));
+                $('#POS-field table tbody').prepend(tr);
+                calc();
+
+                {#tr.find('[name="qty[]"], [name="tendered_price[]"]').on('input', calc);#}
+                tr.find('[name="qty[]"], [name="tendered_price[]"]').on('input', function () {
+                    var qtyInput = $(this).closest('tr').find('[name="qty[]"]');
+                    var stock = parseInt(data.quantity);
+                    var qtyVal = parseInt(qtyInput.val());
+                    var errorSpan = $(this).closest('tr').find('.quantity-error');
+
+                    if (qtyVal > stock) {
+                    // Show error message if quantity exceeds stock
+                    errorSpan.show();
+                    } else {
+                    // Hide error message if condition is met
+                    errorSpan.hide();
+            }
+
+                calc();
+                });
+                tr.find('.rem-item').click(function() {
+                    tr.remove();
+                    calc();
+                });
+
+                $('#product-id option[value="' + id + '"]').remove();
+            }
+        }
+
+        $('#view_sales').click(function() {
+            window.location.href = "{% url 'sales-page' %}";
+        });
+
+        $('#add_item').click(function() {
+            var ids = $('#product-id').val();
+            var qty = $('#product-qty').val();
+            if (!ids || ids.length === 0 || !qty) {
+                alert("Product and Quantity Field is required!");
+                return;
+            }
+            if (qty == '0') {
+                alert("Quantity can't be zero!");
+                return;
+            }
+            ids.forEach(function(id) {
+                addItemToList(id, qty);
+            });
+        });
+
+        $('#product-id').change(function() {
+            var id = $(this).val();
+            var qty = $('#product-qty').val();
+            if (id && qty) {
+                addItemToList(id, qty);
+            }
+        });
+
+        $('[name="tax"]').on('input', calc);
+
+        $('#check_out').click(function() {
+            var selectedPaymentMethod = $('[name="payment_method"]').val();
+            if ($('#POS-field table tbody tr').length <= 0) {
+                alert("Add at least 1 product first!");
+                return;
+            }
+            if ($('[name="advance_amount"]').val() >= 1) {
+                if (selectedPaymentMethod.code !== '0002') {
+                    alert("Please select the Due option in Payment Method.")
+                    return;
+                }
+            }
+
+            start_loader();
+            $('#pos-form').submit();
+        });
+
+        $('#pos-form').submit(function(e) {
+            e.preventDefault();
+            console.log("form opened")
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            // Remove commas from buying_price before submission
+                var advance_amount = document.getElementById('advance_amount');
+                advance_amount.value = removeCommas(advance_amount.value);
+
+                // Remove commas before submission
+               $('input[name="tendered_price[]"]').each(function() {
+               $(this).val(removeCommas($(this).val()));
+               });
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-pos' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert-danger").addClass("alert-success").text("Success!");
+                        location.reload();
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                        console.log(resp.msg)
+                    } else {
+                        el.text("An error occurred", 'error');
+                        console.log(resp.msg)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    });
+    document.getElementById('create_chap_chap_customer').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent form submission
+    uni_modal("Add New Customer", "{% url 'manage-chapchap-customer-page' %}")
+});
+document.getElementById('create_chap_chap_payment_method').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent form submission
+    uni_modal("Add New Payment Method", "{% url 'manage-paymentmethod-page' %}")
+});
+</script>
+{% endblock ScriptBlock %}

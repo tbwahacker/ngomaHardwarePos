@@ -1,0 +1,90 @@
+<div class="container-fluid">
+    <form action="" id="group-form">
+        <input type="hidden" name="id" value="{% if group.pk %}{{ group.pk }}{% endif %}">
+        <div class="form-group mb-3">
+            <label for="name" class="control-label">Role Name</label>
+            <input type="text" name="name" id="name" class="form-control form-control-sm rounded-0" value="{% if group.name %}{{ group.name }}{% endif %}" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="permissions" class="control-label">Please Select The Permissions Below</label>
+            <div class="container">
+                {% for model, model_permissions in grouped_permissions.items %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h5>{{ model }}
+                                <input type="checkbox" class="select-all" data-target=".{{ model|slugify }}-perm"> Select All
+                            </h5>
+                        </div>
+                        {% for permission in model_permissions %}
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input {{ model|slugify }}-perm" type="checkbox" name="permissions" id="perm_{{ permission.pk }}" value="{{ permission.pk }}"
+                                    {% if permission in group.permissions.all %} checked {% endif %}>
+                                    <label class="form-check-label" for="perm_{{ permission.pk }}">{{ permission.name }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(function() {
+        // Handle form submission
+        $('#group-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this);
+            $('.err-msg').remove();
+            var el = $('<div>');
+            el.addClass("alert alert-danger err-msg");
+            el.hide();
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                url: "{% url 'save-group-page' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err);
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg");
+                        location.reload();
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg);
+                    } else {
+                        el.text("An error occurred", 'error');
+                        end_loader();
+                        console.err(resp);
+                    }
+                    _this.prepend(el);
+                    el.show('slow');
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader();
+                }
+            });
+        });
+
+        // Handle select all functionality
+        $('.select-all').on('change', function() {
+            var targetClass = $(this).data('target');
+            $(targetClass).prop('checked', $(this).is(':checked'));
+        });
+    });
+</script>

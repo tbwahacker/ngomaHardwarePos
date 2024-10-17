@@ -1,0 +1,107 @@
+{% load static %}
+<header class="mdc-top-app-bar border-bottom shadow">
+    <div class="mdc-top-app-bar__row">
+        <div class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+            <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button sidebar-toggler">menu</button>
+        </div>
+        <div class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end mdc-top-app-bar__section-right" style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
+            <div style="display: flex; align-items: center;">
+                <div class="language-toggle" id="language-toggle" style="margin-right: 0px;">
+                    <form action="{% url 'set_language' %}" method="post" id="language-form">
+                        {% csrf_token %}
+                        <select id="language" name="language" onchange="this.form.submit()" class="form-select">
+                            <option value="en" {% if request.session.preferred_language == 'en' %}selected{% endif %}>English</option>
+                            <option value="sw" {% if request.session.preferred_language == 'sw' %}selected{% endif %}>Swahili</option>
+                        </select>
+                    </form>
+                </div>
+                <div class="menu-button-container menu-profile d-block">
+                    <button class="mdc-button mdc-menu-button">
+                        <span class="d-flex align-items-center">
+                            <span class="figure">
+                                <img src="{% static 'posApp/assets/material-admin/images/faces/ava.jpg' %}" alt="user" class="user">
+                            </span>
+                            <span class="user-name">{{ user.first_name }}</span>
+                        </span>
+                    </button>
+                    <div class="mdc-menu mdc-menu-surface" tabindex="-1">
+                        <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
+                            <li class="mdc-list-item edit-profile-data" data-id="{{ user.pk }}" role="menuitem">
+                                <a class="text-dark">
+                                    <div class="item-thumbnail item-thumbnail-icon-only">
+                                        <i class="mdi mdi-settings-outline text-dark"></i>
+                                    </div>
+                                    <div class="item-content d-flex align-items-start flex-column justify-content-center">
+                                        <h6 class="item-subject font-weight-normal">{{ translations.edit_profile }}</h6>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="mdc-list-item logout-user" role="menuitem">
+                                <a class="text-dark" href="{% url 'logout' %}">
+                                    <div class="item-thumbnail item-thumbnail-icon-only">
+                                        <i class="mdi mdi-logout text-dark"></i>
+                                    </div>
+                                    <div class="item-content d-flex align-items-start flex-column justify-content-center">
+                                        <h6 class="item-subject font-weight-normal">{{ translations.logout }}</h6>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+  @media (max-width: 768px) {
+    .language-toggle.hidden {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  $(document).ready(function() {
+    $('.sidebar-toggler').click(function() {
+      if (window.innerWidth <= 768) { // Check if screen size is small
+        $('#language-toggle').toggleClass('hidden');
+      }
+    });
+  });
+</script>
+
+<script>
+    $(function() {
+        $('#language').select2({
+            width: '100%'
+        })
+        $('.edit-profile-data').click(function() {
+            uni_modal("Edit Your Profile", "{% url 'manage-user-profile-page' %}?id=" + $(this).attr('data-id'), "modal-lg")
+        });
+        $('.logout-user').click(function(event) {
+            event.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'logout' %}',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function() {
+                    window.location.href = '{% url "login" %}';
+                },
+                error: function() {
+                    alert('An error occurred during logout.');
+                }
+            });
+        });
+        $('#uni_modal').on('shown.bs.modal', function() {
+            $('#category_id').select2({
+                placeholder: "Please Select Details Here",
+                width: '100%',
+                dropdownParent: $('#uni_modal')
+            });
+        });
+    });
+</script>

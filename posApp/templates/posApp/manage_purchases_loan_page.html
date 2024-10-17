@@ -1,0 +1,299 @@
+{% load humanize %}
+<div class="container-fluid">
+    <form action="" id="repayment-form">
+        <input type="hidden" name="id" value="{% if purchase.pk %}{{ purchase.pk }}{% endif %}">
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="code" class="control-label">Repayment ID : </label>
+                    <input type="text" name="code" id="order" class="form-control form-control-sm rounded-0" value="{{ code }}" required disabled>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 d-flex justify-content-between align-items-center">
+                <div class="form-group mb-3">
+                    <label for="payment_method" class="control-label">Payment Method</label>
+                    <select id="payment_method" name="payment_method" class="form-control form-control-sm rounded-0">
+                        <option disabled selected>Select Payment Method</option>
+                        {% for payment_method in payment_methods %}
+                            <option value="{{ payment_method.pk }}">{{ payment_method.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn-light bg-gradient btn-sm rounded-0 m-1 mt-2" id="create_chap_chap_payment_method" title="Create Chap chap Payment-Method">
+                    <i class="mdi mdi-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="supplier" class="control-label">Supplier</label>
+                    <select name="supplier" id="supplier" class="form-control form-control-sm rounded-0" required>
+                        <option value="" disabled selected>Select supplier</option>
+                        {% for supplier in suppliers %}
+                            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="new_pay" class="control-label">Enter amount to pay</label>
+                    <input type="text" name="new_pay" id="new_pay" class="form-control form-control-sm rounded-0" required>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table id="repaymentContent" class="table table-bordered border-dark border-warning border-top-0 border-bottom border-top border-light">
+        <colgroup>
+            <col width="5%">
+            <col width="15%">
+            <col width="15%">
+            <col width="10%">
+            <col width="10%">
+        </colgroup>
+        <thead>
+            <tr>
+                <th class="text-center fw-bold py-1">Date</th>
+                <th class="text-center fw-bold py-1">Supplier</th>
+                <th class="text-end fw-bold py-1">Total Price</th>
+                <th class="text-center fw-bold py-1">Method</th>
+                <th class="text-end fw-bold py-1">Payment</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="px-2 py-1 text-center fw-bold" id="table-date"></td>
+                <td class="px-2 py-1 text-center" id="table-supplier"></td>
+                <td class="px-2 py-1 text-end" id="table-total-price"></td>
+                <td class="px-2 py-1 text-center" id="table-method"></td>
+                <td class="px-2 py-1 text-end" id="table-payment"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="confirmLoanRepaymentModal" tabindex="-1" aria-labelledby="confirmLoanRepaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="height: 350px;">
+            <div class="modal-header" style="background-color: #343a40; color: #fff;">
+                <h5 class="modal-title" id="purchaseOptionsModalLabel">Confirm payment</h5>
+                <button type="button" class="btn-close" id="closeBtn" data-bs-dismiss="modal" aria-label="Close" style="background-color: white"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please press the blue button to confirm</p>
+            </div>
+
+            <div class="modal-footer" style="margin-right: 10px;">
+                <button type="button" class="btn btn-success" style="background-color: #0d6efd; color: white" id="confirmLoanrepayment">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="printLoanRepaymentModal" tabindex="-1" aria-labelledby="printLoanRepaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="width: 1000px; height: 400px;">
+            <div class="modal-header" style="background-color: #343a40; color: #fff;">
+                <h5 class="modal-title" id="purchaseOptionsModalLabel">Press the green buton to print this payment</h5>
+                <button type="button" class="btn-close" id="closePrintBtn" data-bs-dismiss="modal" aria-label="Close" style="background-color: white"></button>
+            </div>
+            <div class="modal-body">
+                <p>Would you like to print this repayment?</p>
+            </div>
+
+            <div class="modal-footer" style="margin-right: 10px;">
+                <button type="button" class="btn btn-success" id="printLoanrepayment">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function formatNumberWithCommas(value) {
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function removeCommas(value) {
+    return value.replace(/,/g, '');
+}
+
+{#document.getElementById('new_pay').addEventListener('input', function(event) {#}
+{#    let value = event.target.value;#}
+{#    value = removeCommas(value);  // Remove any existing commas#}
+{#    if (!isNaN(value) && value !== '') {  // Ensure the value is a number#}
+{#        event.target.value = formatNumberWithCommas(value);#}
+{#    }#}
+{#    updateTable();#}
+{#});#}
+{##}
+{#document.getElementById('supplier').addEventListener('change', updateTable);#}
+{#document.getElementById('payment_method').addEventListener('change', updateTable);#}
+
+function updateTable() {
+    var date = new Date().toLocaleDateString();
+    var supplier = document.getElementById('supplier').options[document.getElementById('supplier').selectedIndex].text;
+    var newPayInput = document.getElementById('new_pay');
+    var totalPrice = newPayInput.value;
+    var method = document.getElementById('payment_method').options[document.getElementById('payment_method').selectedIndex].text;
+    var payment = newPayInput.value;
+
+    document.getElementById('table-date').textContent = date;
+    document.getElementById('table-supplier').textContent = supplier;
+    document.getElementById('table-total-price').textContent = formatNumberWithCommas(totalPrice);
+    document.getElementById('table-method').textContent = method;
+    document.getElementById('table-payment').textContent = formatNumberWithCommas(payment);
+}
+
+$(function() {
+    $('#supplier').select2({
+        placeholder: "Please Select supplier here",
+        width: '100%',
+        dropdownParent: $('#uni_modal')
+    });
+    $('#payment_method').select2({
+        placeholder: "Please Select Payment Method here",
+        width: '100%',
+        dropdownParent: $('#uni_modal')
+    });
+
+    $('#repayment-form').submit(function(e) {
+        e.preventDefault();
+        $('#confirmLoanRepaymentModal').modal('show');
+    });
+
+    $('#confirmLoanrepayment').click(function() {
+        saveRepayment();
+    });
+
+    $('#closePrintBtn').click(function() {
+        window.location.reload();
+    });
+
+    // Event listener for new_pay input field
+    $('#new_pay').on('input', function(event) {
+        let value = event.target.value;
+        value = removeCommas(value);  // Remove any existing commas
+        if (!isNaN(value) && value !== '') {  // Ensure the value is a number
+            event.target.value = formatNumberWithCommas(value);
+        }
+        updateTable();
+    });
+
+    // Event listener for customer dropdown change
+    $('#supplier').on('change', function() {
+        updateTable();
+    });
+
+    // Event listener for payment_method dropdown change
+    $('#payment_method').on('change', function() {
+        updateTable();
+    });
+});
+
+function saveRepayment() {
+    var _this = $('#repayment-form');
+    $('.err-msg').remove();
+    var el = $('<div>');
+    el.addClass("alert alert-danger err-msg");
+    el.hide();
+    if (_this[0].checkValidity() == false) {
+        _this[0].reportValidity();
+        return false;
+    }
+
+    // Remove commas from new_pay before submission
+    var newPayInput = document.getElementById('new_pay');
+    newPayInput.value = removeCommas(newPayInput.value);
+
+    start_loader();
+    $.ajax({
+        headers: {
+            "X-CSRFToken": '{{csrf_token}}'
+        },
+        url: "{% url 'save-supplier-loan-repayment-page' %}",
+        data: new FormData(_this[0]),
+        cache: false,
+        contentType: false,
+        processData: false,
+        method: 'POST',
+        type: 'POST',
+        dataType: 'json',
+        error: err => {
+            console.log(err);
+            end_loader();
+        },
+        success: function(resp) {
+            if (typeof resp == 'object' && resp.status == 'success') {
+                el.removeClass("alert alert-danger err-msg");
+                // Hide confirmLoanRepaymentModal on success
+                $('#confirmLoanRepaymentModal').modal('hide');
+                // Show printLoanRepaymentModal on success
+                $('#printLoanRepaymentModal').modal('show');
+                $('#printLoanrepayment').click(function() {
+                    printFunction();
+                });
+            } else if (resp.status == 'failed' && !!resp.msg) {
+                el.text(resp.msg);
+            } else {
+                el.text("An error occurred", 'error');
+                end_loader();
+                console.err(resp);
+            }
+            _this.prepend(el);
+            el.show('slow');
+            $("html, body, .modal").scrollTop(0);
+            end_loader();
+        }
+    });
+}
+
+function printFunction() {
+    var head = $('head').clone();
+    var bodyContent = $('#repaymentContent').clone();
+    var newDocument = $("<div>");
+
+    var styles = `
+    @media print {
+        @page {
+            margin: 0;
+        }
+        body {
+            background: #eee;
+            margin-top: 20px;
+        }
+        .overall-total {
+            text-align: center;
+            vertical-align: middle;
+        }
+    }`;
+    head.append('<style>' + styles + '</style>');
+    newDocument.append(head);
+    newDocument.append(bodyContent);
+
+    var printWindow = window.open('', '_blank', "width=1200,height=1000,left=300,top=200");
+    printWindow.document.write(newDocument.html());
+    printWindow.document.close();
+
+    setTimeout(() => {
+        printWindow.print();
+        setTimeout(() => {
+            printWindow.close();
+            // Close all modals
+            $('#printLoanRepaymentModal').modal('hide');
+            $('#confirmLoanRepaymentModal').modal('hide');
+            setTimeout(() => {
+            window.location.href = "{% url 'suppliers-page' %}";
+        }, 100);
+        }, 250);
+    }, 300);
+}
+
+document.getElementById('create_chap_chap_payment_method').addEventListener('click', function(event) {
+    event.preventDefault();
+    uni_modal("Add New Payment Method", "{% url 'manage-paymentmethod-page' %}")
+});
+</script>

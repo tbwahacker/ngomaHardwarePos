@@ -1,0 +1,117 @@
+{% load humanize %}
+<div class="container-fluid">
+    <form action="" id="repayment-form">
+        <input type="hidden" name="id" value="{% if sale.pk %}{{ sale.pk }}{% endif %}">
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="order" class="control-label">Order/Sale ID : </label>
+                    <input type="text" name="order" id="order" class="form-control form-control-sm rounded-0" value="{% if sale.pk %}{{ sale.pk }}{% endif %}" required disabled>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="initial_loan" class="control-label">Initial Loan : </label>
+                    <input type="text" name="initial_loan" id="initial_loan" class="form-control form-control-sm rounded-0" value="{% if sale.grand_total %}{{ sale.grand_total|intcomma }}{% endif %}" required readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="total_paid_amount" class="control-label">Total Paid Amount</label>
+                    <input type="text" name="total_paid_amount" id="total_paid_amount" class="form-control form-control-sm rounded-0" value="{% if total_paid_loan > 0 %}{{ total_paid_loan|intcomma }}{% else %}{{ 0 }}{% endif %}" required readonly>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="disbursed_amount" class="control-label">Total Outstanding Amount</label>
+                    <input type="text" name="disbursed_amount" id="disbursed_amount" class="form-control form-control-sm rounded-0" value="{{ total_disbursed_amount.disbursed_amount|intcomma }}" required readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="new_pay" class="control-label">Enter amount to pay</label>
+                    <input type="text" name="new_pay" id="new_pay" class="form-control form-control-sm rounded-0" required>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function formatNumberWithCommas(value) {
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function removeCommas(value) {
+    return value.replace(/,/g, '');
+}
+
+document.getElementById('new_pay').addEventListener('input', function(event) {
+    let value = event.target.value;
+    value = removeCommas(value);  // Remove any existing commas
+    if (!isNaN(value) && value !== '') {  // Ensure the value is a number
+        event.target.value = formatNumberWithCommas(value);
+    }
+});
+
+$(function() {
+    $('#repayment-form').submit(function(e) {
+        e.preventDefault();
+        var _this = $(this);
+        $('.err-msg').remove();
+        var el = $('<div>');
+        el.addClass("alert alert-danger err-msg");
+        el.hide();
+        if (_this[0].checkValidity() == false) {
+            _this[0].reportValidity();
+            return false;
+        }
+
+        // Remove commas from new_pay before submission
+        var newPayInput = document.getElementById('new_pay');
+        newPayInput.value = removeCommas(newPayInput.value);
+
+        start_loader();
+        $.ajax({
+            headers: {
+                "X-CSRFToken": '{{csrf_token}}'
+            },
+            url: "{% url 'save-loan-repayment-page' %}",
+            data: new FormData(_this[0]),
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            type: 'POST',
+            dataType: 'json',
+            error: err => {
+                console.log(err);
+                end_loader();
+            },
+            success: function(resp) {
+                if (typeof resp == 'object' && resp.status == 'success') {
+                    el.removeClass("alert alert-danger err-msg");
+                    location.reload();
+                } else if (resp.status == 'failed' && !!resp.msg) {
+                    el.text(resp.msg);
+                } else {
+                    el.text("An error occured", 'error');
+                    end_loader();
+                    console.err(resp);
+                }
+                _this.prepend(el);
+                el.show('slow');
+                $("html, body, .modal").scrollTop(0);
+                end_loader();
+            }
+        });
+    });
+});
+</script>
