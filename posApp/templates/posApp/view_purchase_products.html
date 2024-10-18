@@ -107,9 +107,11 @@
                             <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--light mdc-ripple-upgraded edit-data" type="button" data-id="{{ item.pk }}" title="Edit">
                                 <i class="material-icons mdc-button__icon">edit</i>
                             </button>
+                            {% if items|length > 1 %}
                             <button class="mdc-button mdc-button--raised p-1 icon-button filled-button--danger mdc-ripple-upgraded delete-data" type="button" data-id="{{ item.pk }}" title="Delete">
                                 <i class="material-icons mdc-button__icon">delete_outline</i>
                             </button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}

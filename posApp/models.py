@@ -163,7 +163,8 @@ class salesItems(models.Model):
     tendered_price = models.FloatField(default=0)
     change = models.FloatField(default=0)
     price = models.FloatField(default=0)
-    qty = models.IntegerField(default=0)
+    qty = models.FloatField(default=0)
+    pcs = models.IntegerField(default=0)
     total = models.FloatField(default=0)
     total_tendered_price = models.FloatField(default=0)
     date_added = models.DateTimeField(default=timezone.now)
@@ -315,13 +316,16 @@ class StockMovementHistory(models.Model):
     product = models.ForeignKey('Products', on_delete=models.CASCADE)
     date = models.DateField(default=timezone.now)
     initial_stock = models.IntegerField(default=0)
+    initial_stock_pieces = models.IntegerField(default=0)
 
     purchases = models.ManyToManyField('Purchases', blank=True)
     sales = models.ManyToManyField('Sales', blank=True)
 
     purchased_quantity = models.IntegerField(default=0)
     sold_quantity = models.IntegerField(default=0)
+
     balance = models.IntegerField(default=0)
+    balance_pieces = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.product.name} on {self.date}"

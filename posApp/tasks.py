@@ -1,3 +1,4 @@
+from _decimal import Decimal
 from celery import shared_task
 from django.db.models import Sum
 from .models import StockMovementHistory, purchasesItems, salesItems, Purchases, Sales, Products
@@ -27,12 +28,16 @@ def update_stock_movement(product_id, date=None):
 
     if previous_entry:
         initial_stock = previous_entry.initial_stock
-        balance = previous_entry.balance + purchased_quantity - sold_quantity
+        initial_stock_pieces = previous_entry.initial_stock_pieces
+        balance = previous_entry.balance + purchased_quantity - Decimal(sold_quantity)
+        balance_pieces = (balance*previous_entry.product.max_pieces)+previous_entry.product.left_pieces
     else:
         # Set initial stock for the first stock movement
         product = Products.objects.get(id=product_id)
         initial_stock = product.quantity
-        balance = initial_stock + purchased_quantity - sold_quantity
+        initial_stock_pieces = product.total_pieces
+        balance = initial_stock + purchased_quantity - Decimal(sold_quantity)
+        balance_pieces = (balance*product.max_pieces) + product.left_pieces
 
     # Get purchase and sale entries for the day
     purchases = Purchases.objects.filter(purchasesitems__in=purchase_items)
@@ -43,9 +48,11 @@ def update_stock_movement(product_id, date=None):
         product_id=product_id, date=date,
         defaults={
             'initial_stock': initial_stock,
+            'initial_stock_pieces': initial_stock_pieces,
             'purchased_quantity': purchased_quantity,
             'sold_quantity': sold_quantity,
-            'balance': balance
+            'balance': balance,
+            'balance_pieces': balance_pieces
         }
     )
 
@@ -68,4 +75,5 @@ def update_stock_movement_on_unapprove(item, which=None):
         stock_movement.save()
         # Update the balance
         stock_movement.balance = stock_movement.initial_stock + stock_movement.purchased_quantity - stock_movement.sold_quantity
+        stock_movement.balance_pieces = ((stock_movement.initial_stock + stock_movement.purchased_quantity - stock_movement.sold_quantity) * stock_movement.product.max_pieces)+stock_movement.product.left_pieces
         stock_movement.save()

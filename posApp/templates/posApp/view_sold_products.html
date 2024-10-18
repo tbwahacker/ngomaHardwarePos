@@ -100,7 +100,7 @@
                             <td class="px-2 py-1 text-start">Unselected</td>
                         {% endif %}
                         <td class="px-2 py-1 text-center fw-bold">{{ item.product_id.name }}</td>
-                        <td class="px-2 py-1 text-center">{{ item.qty }}</td>
+                        <td class="px-2 py-1 text-center">{% if item.pcs > 0 %}{{ item.qty }} Box and {{ item.pcs }} Pcs{% else %}{{ item.qty }}{% endif %}</td>
                         {% if company.is_direct_pricing_method %}
                         <td class="px-2 py-1 text-end">{{ item.price|intcomma }}</td>
                         <td class="px-2 py-1 text-end">{{ item.total|intcomma }}</td>
@@ -140,7 +140,7 @@
 {#                             <td colspan="3" class="text-end" style="font-style: oblique">Tendered Amount:</td>#}
 {#                            <td class="px-2 py-1 text-start center-align overall-total">{{ sale.tendered_amount|intcomma }}</td>#}
                              <td class="text-end" style="font-style: oblique">Total Quantity:</td>
-                            <td class="px-2 py-1 text-center center-align overall-total">{{ item_counts }}</td>
+                            <td class="px-2 py-1 text-center center-align overall-total">{% if item_pieces_count > 0 %}{{ item_counts }} and {{ item_pieces_count }} Pcs{% else %}{{ item_counts }}{% endif %}</td>
                              <td colspan="1" class="text-end" style="font-style: oblique">Overall Total:</td>
                             <td class="px-2 py-1 text-end fw-bold center-align overall-total">{{ product_totals|intcomma }}</td>
                             <td class="px-2 py-1 center-align"><button class="btn btn-primary bg-gradient btn-sm rounded-20 add-data" id="create_new" data-id="{{ sale.id }}"><i class="mdi mdi-plus"></i><span> Add New</span></button></td>

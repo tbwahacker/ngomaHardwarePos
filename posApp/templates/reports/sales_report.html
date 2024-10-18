@@ -96,7 +96,7 @@
 {#                                <td class="px-2 py-1 text-center">{{ sale.sale_ids }}</td>#}
                                 <td class="px-2 py-1 text-center">{{ sale.latest_date_added|date:"M d Y" }}</td>
                                 <td class="px-2 py-1 text-center fw-bold">{{ sale.product_id__name }}</td>
-                                <td class="px-2 py-1 text-center">{{ sale.total_quantity }}</td>
+                                <td class="px-2 py-1 text-center">{{ sale.total_quantity|floatformat:0 }}</td>
                                 <td class="px-2 py-1 text-end">{{ sale.total_sales|intcomma }}</td>
                             </tr>
                         {% endfor %}
@@ -131,7 +131,7 @@
                                 <td class="px-2 py-1 text-center">{{ sale.id }}</td>
                                 <td class="px-2 py-1 text-center">{{ sale.date_added|date:'Y-m-d H:i' }}</td>
                                 <td class="px-2 py-1 text-center fw-bold">{{ sale.product_name }}</td>
-                                <td class="px-2 py-1 text-center">{{ sale.salesitems_qty }}</td>
+                                <td class="px-2 py-1 text-center">{{ sale.salesitems_qty|floatformat:0 }}</td>
                                 <td class="px-2 py-1 text-end">{{ sale.salesitems_price }}</td>
                                 <td class="px-2 py-1 text-end">{{ sale.salesitems_total|intcomma }}</td>
                             </tr>

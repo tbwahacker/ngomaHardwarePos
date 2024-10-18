@@ -397,7 +397,7 @@ def products(request):
         products_page = paginator.page(paginator.num_pages)
     total_price = 0
     for product in product_list:
-        total_price += (product.buying_price * (float(product.quantity)+(product.left_pieces/product.max_pieces)))
+        total_price += (product.buying_price * (float(product.quantity) + (product.left_pieces / product.max_pieces)))
     # Calculate the range of entries being displayed
     start_index = (products_page.number - 1) * per_page + 1
     end_index = min(products_page.number * per_page, paginator.count)
@@ -486,7 +486,8 @@ def save_product(request):
             # If a file is uploaded, call import_csv_files function
             model = Products  # Specify the model class
             fields = ['category_id', 'name', 'description', 'buying_price', 'price', 'unit_id',
-                      'minimum_quantity', 'quantity', 'left_pieces', 'max_pieces', 'markup']  # Specify the fields corresponding to CSV columns
+                      'minimum_quantity', 'quantity', 'left_pieces', 'max_pieces',
+                      'markup']  # Specify the fields corresponding to CSV columns
             return import_products_csv_files(request, model, fields)
 
         else:
@@ -508,8 +509,9 @@ def save_product(request):
                 unit = Units.objects.filter(id=data['unit_id']).first()
                 total_pieces = 0
                 print(f"heere: {data['left_pieces']} {data['max_pieces']}")
-                if int(data['left_pieces'])>0 and int(data['max_pieces'])>0:
-                    total_pieces = (Decimal(data['quantity']) * Decimal(data['max_pieces'])) + Decimal(data['left_pieces'])
+                if int(data['left_pieces']) > 0 and int(data['max_pieces']) > 0:
+                    total_pieces = (Decimal(data['quantity']) * Decimal(data['max_pieces'])) + Decimal(
+                        data['left_pieces'])
                 try:
                     if id.isnumeric() and int(id) > 0:
                         product = Products.objects.filter(id=id).first()
@@ -536,10 +538,10 @@ def save_product(request):
                             description=data['description'],
                             price=float(data['price']),
                             buying_price=float(data['buying_price']),
-                            markup = data['markup'],
-                            left_pieces = data['left_pieces'],
-                            max_pieces = data['max_pieces'],
-                            total_pieces = total_pieces,
+                            markup=data['markup'],
+                            left_pieces=data['left_pieces'],
+                            max_pieces=data['max_pieces'],
+                            total_pieces=total_pieces,
                             units=unit,
                             quantity=int(data['quantity']),
                             minimum_quantity=int(data['min_quantity']),
@@ -565,7 +567,6 @@ def save_product(request):
 
     return HttpResponse(json.dumps({'status': 'failed', 'msg': 'Invalid request method'}),
                         content_type="application/json")
-
 
 
 @login_required
@@ -600,7 +601,9 @@ def pos(request):
     product_json = []
     for product in products:
         product_json.append(
-            {'id': product.id, 'name': product.name, 'price': float(product.price), 'quantity': product.quantity})
+            {'id': product.id, 'name': product.name, 'price': float(product.price),
+             'quantity': float(product.quantity), 'left_pieces': product.left_pieces,
+             'max_pieces': product.max_pieces, 'total_pieces': product.total_pieces, 'markup': float(product.markup)})
     context = {
         'page_title': "Point of Sale",
         'customers': customers,  # Pass customers to the template
@@ -658,10 +661,11 @@ def save_pos(request):
                 item_id = request.POST.get('id', None)
                 product_id = request.POST.get('product_id', None)
                 quantity = int(request.POST.get('quantity', 0))
+                pcs = int(request.POST.get('pcs', 0))
                 selling_price = float(request.POST.get('price', 0))
 
                 # Add single item in sale
-                if sale_id and sale_id>0:
+                if sale_id and sale_id > 0:
                     product = Products.objects.get(id=product_id)
                     quantity_in_past = product.quantity
                     sale = Sales.objects.filter(id=sale_id).first()
@@ -720,7 +724,8 @@ def save_pos(request):
                                         messages.error(request,
                                                        f'Not Added. Price ({intcomma(selling_price)}) is smaller than the minimum selling price ({intcomma(product.price)}) for product ({product.name}).')
                                     else:
-                                        messages.error(request, 'Not Updated. The price you entered is below the minimum selling price.')
+                                        messages.error(request,
+                                                       'Not Updated. The price you entered is below the minimum selling price.')
 
                                     return JsonResponse({'status': 'failed'})
 
@@ -754,7 +759,6 @@ def save_pos(request):
                                         total=quantity * selling_price
                                     )
 
-
                                     sale = Sales.objects.filter(id=item.first().sale_id.pk)
 
                                     # punguza stock
@@ -786,7 +790,8 @@ def save_pos(request):
                                         messages.error(request,
                                                        f'Not Updated. Price ({intcomma(selling_price)}) is smaller than the minimum selling price ({intcomma(item.first().product_id.price)}) for product ({item.first().product_id.name}).')
                                     else:
-                                        messages.error(request, 'Not Updated. The price you entered is below the minimum selling price.')
+                                        messages.error(request,
+                                                       'Not Updated. The price you entered is below the minimum selling price.')
 
                                     return JsonResponse({'status': 'failed'})
 
@@ -870,14 +875,16 @@ def save_pos(request):
 
             sale_id = sales.pk
             i = 0
-
             total_of_totals = 0
             total_of_total_tenders = 0
             history = CustomerSalesHistory.objects.filter(customer_id=customer_id)
             # Iterate through each product and save SalesItems record
             for prod in data.getlist('product_id[]'):
                 product = Products.objects.get(id=prod)
-                qty = int(data.getlist('qty[]')[i])
+                qty = float(data.getlist('qty[]')[i]) if data.getlist('qty[]')[i] else 0
+                pcs = (int(data.getlist('pcs[]')[i]) if data.getlist('pcs[]')[i] else 0) if \
+                    product.markup > 0 and product.max_pieces > 1 else 0
+                price = float(data.getlist('price[]')[i])
                 if data.getlist('tendered_price[]')[i] == "":
                     tendered_price = float(data.getlist('price[]')[i])
                 else:
@@ -889,9 +896,9 @@ def save_pos(request):
                             f"Cannot save! Product {product} 's price ({intcomma(tendered_price)}) is smaller than the selling price ({intcomma(product.price)})."
                         )
                     else:
-                        raise ValueError("Can not Saved! The price you entered is below the minimum selling price.")
+                        raise ValueError("Can not Save! The price you entered is below the minimum selling price.")
 
-                if qty > product.quantity:
+                if qty > float(product.quantity):
                     if request.user.is_staff:
                         raise ValueError(
                             f"Cannot save! Requested quantity ({qty}) exceeds available stock of ({product.quantity})for product ({product.name})."
@@ -901,11 +908,28 @@ def save_pos(request):
                             f"Cannot save! Requested quantity ({qty}) exceeds available stock, which is less than {qty}"
                         )
 
-                price = float(data.getlist('price[]')[i])
-                total = qty * price
-                total_of_totals += total
+                if pcs and (pcs + (qty * float(product.max_pieces))) > product.total_pieces:
+                    if request.user.is_staff:
+                        raise ValueError(
+                            f"Cannot save! Requested pieces ({pcs}) exceeds available stock of ({product.quantity}) and ({product.left_pieces})for product ({product.name})."
+                        )
+                    else:
+                        raise ValueError(
+                            f"Cannot save! Requested pieces ({pcs}) exceeds available stock"
+                        )
 
-                total_tendered_price = qty * tendered_price
+                if pcs and pcs != "" and pcs > 0:
+                    individual_price = (price / product.max_pieces) + (
+                                (price * float(product.markup)) / (100 * product.max_pieces))
+                    individual_tendered_price = (tendered_price / product.max_pieces) + (
+                            (tendered_price * float(product.markup)) / (100 * product.max_pieces))
+                    total = (qty * price) + (pcs * individual_price)
+                    total_tendered_price = (qty * tendered_price) + (pcs * individual_tendered_price)
+                else:
+                    total = qty * price
+                    total_tendered_price = qty * tendered_price
+
+                total_of_totals += total
                 total_of_total_tenders += total_tendered_price
 
                 salesItems.objects.create(
@@ -914,6 +938,7 @@ def save_pos(request):
                     tendered_price=tendered_price,
                     change=tendered_price - float(product.price),
                     qty=qty,
+                    pcs=pcs,
                     price=price,
                     total=total,
                     total_tendered_price=total_tendered_price
@@ -931,7 +956,6 @@ def save_pos(request):
                     quantity_sold=qty,
                     user=request.user
                 )
-
 
                 # # Update product quantity
                 # product.quantity -= qty
@@ -1134,7 +1158,8 @@ def salesList(request):
                 data[field.name] = getattr(sale, field.name)
         data['items'] = salesItems.objects.filter(sale_id=sale).all()
         data['payment_method'] = sale.payment_method
-        data['item_count'] = sum(q.qty for q in data['items'])
+        # data['item_count'] = sum(q.qty for q in data['items'])
+        data['item_count'] = data['items'].count()
         data['customer'] = sale.customer
         data['user'] = sale.user
         data['total_tendered_amount'] = sale.tendered_total
@@ -1246,7 +1271,7 @@ def remove_item_in_sale(request):
                     )
 
                     # Get the StockMovementHistory record for the product and date
-                update_stock_movement_on_unapprove(sale_item,0)  #0 for sale item
+                update_stock_movement_on_unapprove(sale_item, 0)  # 0 for sale item
 
         except salesItems.DoesNotExist:
             logger.error(f'SalesItem with id {sale_item_id} does not exist')
@@ -1358,7 +1383,9 @@ def save_purchase(request):
                                 total=quantity * buying_price
                             )
                             Products.objects.filter(id=item.first().product_id.pk).update(
-                                quantity=reversed_qty + quantity
+                                quantity=reversed_qty + quantity,
+                                total_pieces=((
+                                                      reversed_qty + quantity) * item.first().product_id.max_pieces) + item.product_id.left_pieces
                             )
                             purchase = Purchases.objects.filter(id=item.first().purchase_id.pk)
                             new_grand_total = 0
@@ -1418,6 +1445,7 @@ def save_purchase(request):
 
                             # Update product quantity
                             if purchase.status == 1:
+                                product.total_pieces += ((quantity * product.max_pieces) + product.left_pieces)
                                 product.quantity += quantity
                                 product.save()
                                 StockMovement.objects.create(
@@ -1478,7 +1506,8 @@ def save_purchase(request):
                                     # punguza stock
                                     if purchase.first().status == 1:
                                         Products.objects.filter(id=item.first().product_id.pk).update(
-                                            quantity=reversed_qty - quantity
+                                            quantity=reversed_qty - quantity,
+                                            total_pieces=(reversed_qty - quantity) * item.first().product_id.max_pieces
                                         )
 
                                     new_grand_total = 0
@@ -1876,7 +1905,7 @@ def purchasesList(request):
 
     # Apply filter if a specific status is selected
     if status_filter is not None and status_filter != '':
-            purchases = purchases.filter(status=status_filter)
+        purchases = purchases.filter(status=status_filter)
 
     paginator = Paginator(purchases.order_by('-date_added'), per_page)
     page = request.GET.get('page')
@@ -1964,9 +1993,8 @@ def remove_item_in_purchase(request):
                 purchase_item.product_id.quantity = reversed_products_qty
                 purchase_item.product_id.save()
 
-
                 # Get the StockMovementHistory record for the product and date
-                update_stock_movement_on_unapprove(purchase_item,1)  #1 for purchase item
+                update_stock_movement_on_unapprove(purchase_item, 1)  # 1 for purchase item
         except salesItems.DoesNotExist:
             logger.error(f'Item with id {purchase_item_id} does not exist')
             resp['status'] = 'failed'
@@ -2121,8 +2149,7 @@ def delete_purchase(request):
                         purchase_item.product_id.save()
 
                         # Get the StockMovementHistory record for the product and date
-                        update_stock_movement_on_unapprove(purchase_item,1)  #1 for purchase item
-
+                        update_stock_movement_on_unapprove(purchase_item, 1)  # 1 for purchase item
 
                 purchase.delete()
             else:
@@ -2170,7 +2197,8 @@ def viewPurchasedProducts(request):
     purchase = get_object_or_404(Purchases, id=purchase_id)
 
     items = purchasesItems.objects.filter(purchase_id=purchase).filter(Q(product_id__name__icontains=query)
-    ).select_related('product_id') if query else purchasesItems.objects.filter(purchase_id=purchase).select_related(
+                                                                       ).select_related(
+        'product_id') if query else purchasesItems.objects.filter(purchase_id=purchase).select_related(
         'product_id')
 
     total_due_payment_history = PurchasesDuePaymentHistory.objects.filter(purchase_id=purchase)
@@ -2220,7 +2248,9 @@ def process_purchase_payment(request):
         items = purchasesItems.objects.filter(purchase_id_id=purchase_id)
         for item in items:
             Products.objects.filter(id=item.product_id.pk).update(
-                quantity=item.product_id.quantity + item.qty
+                quantity=item.product_id.quantity + item.qty,
+                total_pieces=((
+                                      item.product_id.quantity + item.qty) * item.product_id.max_pieces) + item.product_id.left_pieces
             )
             update_stock_movement(item.product_id.id, item.purchase_id.date_added.date())
         purchase.status = 1  # Update status to 'Success' or other appropriate status
@@ -2239,9 +2269,11 @@ def unapprove_purchase(request):
         items = purchasesItems.objects.filter(purchase_id_id=purchase_id)
         for item in items:
             Products.objects.filter(id=item.product_id.pk).update(
-                quantity=item.product_id.quantity - item.qty
+                quantity=item.product_id.quantity - item.qty,
+                total_pieces=((
+                                      item.product_id.quantity - item.qty) * item.product_id.max_pieces) - item.product_id.left_pieces
             )
-            update_stock_movement_on_unapprove(item,1)  #1 for purchase item
+            update_stock_movement_on_unapprove(item, 1)  # 1 for purchase item
         purchase.status = 0  # Update status to 'Rejected' or other appropriate status
         purchase.save()
         messages.success(request, f'Unpproved successfully')
@@ -2384,6 +2416,7 @@ def viewSoldProducts(request):
     else:
         product_totals = sum(item.total_tendered_price for item in items)
     total_item_quantity = sum(q.qty for q in items)
+    total_item_pieces = sum(q.pcs for q in items)
     new_disbursement = 0
     # if sale.loan_status == 1:
     # new_disbursement = total_due_payment_history.last().outstanding_amount
@@ -2411,6 +2444,7 @@ def viewSoldProducts(request):
         'sale': sale,
         'items': items_page,
         "item_counts": total_item_quantity,
+        "item_pieces_count": total_item_pieces,
         'histories': due_payment_history,
         'overall_total': overall_total_paid_amount,
         'new_disbursement': new_disbursement,
@@ -2432,8 +2466,14 @@ def process_payment(request):
             sale = Sales.objects.get(pk=sale_id)
             items = salesItems.objects.filter(sale_id_id=sale_id)
             for item in items:
+                # Calculations for both Boxes and Pieces
+                quantity_sold_in_pieces = (item.qty * item.product_id.max_pieces) + item.pcs
+                remaining_pieces_in_stock = item.product_id.total_pieces - quantity_sold_in_pieces
                 Products.objects.filter(id=item.product_id.pk).update(
-                    quantity=item.product_id.quantity - item.qty
+                    # quantity=item.product_id.quantity - item.qty,
+                    quantity=remaining_pieces_in_stock // item.product_id.max_pieces,
+                    left_pieces=remaining_pieces_in_stock % item.product_id.max_pieces,
+                    total_pieces=remaining_pieces_in_stock,
                 )
                 update_stock_movement(item.product_id.id, item.sale_id.date_added.date())
             sale.status = 1  # Update status to 'Success' or other appropriate status
@@ -2453,8 +2493,14 @@ def unapprove_payment(request):
             sale = Sales.objects.get(pk=sale_id)
             items = salesItems.objects.filter(sale_id_id=sale_id)
             for item in items:
+                # Calculations for both Boxes and Pieces
+                quantity_sold_in_pieces = (item.qty * item.product_id.max_pieces) + item.pcs
+                remaining_pieces_in_stock = item.product_id.total_pieces + quantity_sold_in_pieces
                 Products.objects.filter(id=item.product_id.pk).update(
-                    quantity=item.product_id.quantity + item.qty
+                    # quantity=item.product_id.quantity + item.qty
+                    quantity=remaining_pieces_in_stock // item.product_id.max_pieces,
+                    left_pieces=remaining_pieces_in_stock % item.product_id.max_pieces,
+                    total_pieces=remaining_pieces_in_stock,
                 )
                 update_stock_movement_on_unapprove(item, 0)  # 1 for sales
             sale.status = 0  # Update status to 'Rejected' or other appropriate status
@@ -3007,7 +3053,7 @@ def delete_sale(request):
                         sale_item.product_id.quantity = reversed_products_qty
                         sale_item.product_id.save()
 
-                        update_stock_movement_on_unapprove(sale_item,0)  #0 for sale item
+                        update_stock_movement_on_unapprove(sale_item, 0)  # 0 for sale item
 
                 has_loan = DuePaymentHistory.objects.filter(sale_id=sale)
 
@@ -3822,6 +3868,7 @@ def sales_report(request):
         sales_items = salesItems.objects.filter(sale_id__in=sales).values(
             'product_id__name'  # Group by product name
         ).annotate(
+            total_pcs=Sum('pcs'),  # Aggregate total pcs
             total_quantity=Sum('qty'),  # Aggregate total quantity
             total_sales=Sum('total'),  # Aggregate total sales
             latest_date_added=Subquery(latest_date_added_subquery)  # Annotate with the latest date_added
@@ -3856,6 +3903,7 @@ def sales_report(request):
             sales1 = sales1.filter(salesitems__product_id=product)
             sales1 = sales1.annotate(product_name=F('salesitems__product_id__name'),
                                      salesitems_qty=F('salesitems__qty'),
+                                     salesitems_pcs=F('salesitems__pcs'),
                                      salesitems_price=F('salesitems__price'),
                                      salesitems_total=F('salesitems__total')
                                      )
@@ -3895,8 +3943,6 @@ def purchasesreport(request):
             purchases = purchases.filter(supplier_id=client)
         if employee:
             purchases = purchases.filter(user_id=employee)
-
-
 
         # Subquery to get the latest date_added for each product
         latest_date_added_subquery = purchasesItems.objects.filter(
@@ -4081,7 +4127,6 @@ def stock_movement_report(request):
         Q(product__name__icontains=query)
     ) if query else StockMovementHistory.objects.filter(date__range=[from_date, to_date])
 
-
     if product_id:
         stock_movements = stock_movements.filter(product__id=product_id)
     if supplier_id:
@@ -4090,6 +4135,11 @@ def stock_movement_report(request):
         stock_movements = stock_movements.filter(sales__customer__id=customer_id)
     if employee_id:
         stock_movements = stock_movements.filter(employee__id=employee_id)
+
+    # Calculate totals for each stock movement (example: multiplying quantities)
+    for movement in stock_movements:
+        movement.initial_pieces = movement.initial_stock_pieces - (movement.initial_stock * movement.product.max_pieces)
+        movement.balance_pieces = movement.balance_pieces - (movement.balance * movement.product.max_pieces)
 
     # Pass data to the template
     context = {

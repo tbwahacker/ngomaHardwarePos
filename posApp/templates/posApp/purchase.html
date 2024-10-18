@@ -29,7 +29,7 @@
             <fieldset>
                 <legend>Add Products</legend>
                 <div class="row align-items-center">
-                    <div class="col-lg-3 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
+                    <div class="col-lg-4 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
                         <div class="form-group mb-3">
                             <label for="supplier-id" class="control-label">Supplier</label>
                             <select id="supplier-id" name="supplier-id" class="form-control form-control-sm rounded-0">
@@ -49,13 +49,13 @@
                             <i class="mdi mdi-plus"></i>
                         </button>
                     </div>
-                    <div class="col-lg-3 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
+                    <div class="col-lg-4 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
                         <div class="form-group mb-3">
                             <label for="product-id">Select Product</label>
                             <select id="product-id" class="form-select form-select-sm" multiple>
                                 <option value="" disabled selected></option>
                                 {% for product in products %}
-                                    <option value="{{ product.pk }}">{{ product }} ==> {{ product.quantity }}</option>
+                                    <option value="{{ product.pk }}">{% if product.left_pieces > 0 %}{{ product }} <br>==> {{ product.quantity|floatformat:0 }} Box & {{ product.left_pieces }} Pcs{% else %}{{ product }} <br>==> {{ product.quantity }}{% endif %}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -63,7 +63,7 @@
                             <i class="mdi mdi-plus"></i>
                         </button>
                     </div>
-                    <div class="col-lg-3 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
+                    <div class="col-lg-4 col-md-5 col-sm-12 d-flex justify-content-between align-items-center">
                          <div class="form-group mb-3">
                              <label for="payment_method" class="control-label">Payment Method</label>
                              <select id="payment_method" name="payment_method" class="form-control form-control-sm rounded-0">
@@ -77,21 +77,23 @@
                           <i class="mdi mdi-plus"></i>
                          </button>
                     </div>
-                    <div class="col-lg-1 col-md-5 col-sm-12">
-                        <div class="form-group mb-3" style="display: none">
-                            <label for="product-qty">Qty</label>
-                            <input type="number" class="form-control form-control-sm text-center" step="any" id="product-qty" value="1">
-                        </div>
-                    </div>
-                     <div class="col-lg-2 col-md-2 col-sm-12">
+                    <div class="col-lg-4 col-md-5 col-md-12">
                         <div class="form-group mb-3" >
                             <label for="car_no">Car</label>
                             <input type="text" name="car_no" placeholder="Car Plate No." class="form-control form-control-sm text-center" step="any" id="car_no">
                         </div>
                     </div>
-                    <div class="col-lg-2 col-md-2 col-sm-12">
-                        <div class="form-group mb-3 text-end">
-                            <button class="btn btn-primary btn-sm bg-gradient border rounded-20 ml-auto font-weight-bold" style="background-color: green;" type="button" id="check_out"><i class="mdi mdi-save"></i> Save Purchase</button>
+                    <div class="col-lg-4 col-md-5 col-sm-12">
+                        <div class="form-group mb-3" style="display: none">
+                            <label for="product-qty">Qty</label>
+                            <input type="number" class="form-control form-control-sm text-center" step="any" id="product-qty" value="1">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-2 col-md-12">
+                        <div class="form-group mb-3 d-flex">
+                            <button class="btn btn-primary btn-sm rounded-0 ml-auto font-weight-bold w-100" style="background-color: green;" type="button" id="check_out">
+                                <i class="mdi mdi-save"></i> SAVE
+                            </button>
                         </div>
                     </div>
                 </div>

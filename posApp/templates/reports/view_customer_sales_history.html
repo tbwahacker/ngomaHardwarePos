@@ -72,7 +72,7 @@
                     <tr>
                         <td class="px-2 py-1 text-center fw-bold">{{ history.date_added|date:"F d, Y" }}</td>
                         <td class="px-2 py-1 text-center">{{ history.items.first.product_id.name }}</td>
-                        <td class="px-2 py-1 text-center align-top">{{ history.items.first.qty }}</td>
+                        <td class="px-2 py-1 text-center align-top">{% if history.items.first.pcs > 0 %}{{ history.items.first.qty }} and {{ history.items.first.pcs }} Pcs {% else %}{{ history.items.first.qty }}{% endif %}</td>
                         {% if is_direct_pricing %}
                         <td class="px-2 py-1 text-end">{{ history.items.first.price|intcomma }}</td>
                         <td class="px-2 py-1 text-end">{{ history.items.first.total|intcomma }}</td>
@@ -99,7 +99,7 @@
                     <tr>
                         <td></td>
                         <td class="px-2 py-1 text-center">{{ item.product_id.name }}</td>
-                        <td class="px-2 py-1 text-center align-top">{{ item.qty }}</td>
+                        <td class="px-2 py-1 text-center align-top">{% if item.pcs > 0 %}{{ item.qty }} and {{ item.pcs }} Pcs {% else %}{{ item.qty }}{% endif %}</td>
                         {% if is_direct_pricing %}
                         <td class="px-2 py-1 text-end">{{ item.price|intcomma }}</td>
                         <td class="px-2 py-1 text-end">{{ item.total|intcomma }}</td>

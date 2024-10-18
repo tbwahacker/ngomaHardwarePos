@@ -81,9 +81,6 @@ def import_products_csv_files(request, model, fields):
             if not markup:
                 markup = Decimal(0)
 
-            print(f"angaaa : left:{left_pieces} max:{max_pieces} markup:{markup}")
-            print(f"{data_dict}")
-
             try:
                 if left_pieces and max_pieces:
                     data_dict['left_pieces'] = int(left_pieces)
@@ -95,7 +92,8 @@ def import_products_csv_files(request, model, fields):
             except ValueError as e:
                 errors.append({'row': row_number, 'error': f'Invalid value for pieces: {e}'})
                 continue
-
+            print(f"angaaa : left:{left_pieces} max:{max_pieces} markup:{markup} total:{total_pieces}")
+            print(f"{data_dict}")
             data_dict['total_pieces'] = Decimal(total_pieces)
             data_dict['markup'] = Decimal(markup)
             data_dict['category_id'] = category  # Assign the Category instance to category_id field
