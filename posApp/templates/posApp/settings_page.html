@@ -57,7 +57,7 @@
                         {% if company and company.logo %}
                         <img id="current-logo" src="data:image/png;base64,{{ company.logo|b64encode }}" alt="Current Logo" class="img-responsive" style="max-width:45px; max-height: 45px; border-radius: 15%;">
                          {% else %}
-                         <img class="img-responsive" src="{% static 'posApp/assets/material-admin/images/poslogo.png' %}" alt="Company Logo" id="companyLogo" style="width: 45px; border-radius: 45px;">
+                         <img class="img-responsive" src="{% static 'posApp/assets/material-admin/images/poslogo2.png' %}" alt="Company Logo" id="companyLogo" style="width: 45px; border-radius: 45px;">
                          {% endif %}
                         </td>
                         <td class="px-2 py-3 text-start">{{ company.name }}
